@@ -5,7 +5,7 @@ from .models import Reports
 
 class ReportsSerializer(GeoFeatureModelSerializer):
 
-    class meta:
+    class Meta:
         model = Reports
 
         geo_field = 'location'
