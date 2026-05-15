@@ -50,15 +50,16 @@ class Road(models.Model):
 
 class State(models.Model):
     name = models.CharField(max_length=100)
-    geometry = models.MultiPolygonField()
+    geometry = models.PolygonField()
 
     def __str__(self):
         return self.name
 
 
 class LGA(models.Model):
-    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="lgas")
-
+    state = models.ForeignKey(
+        State, on_delete=models.CASCADE, related_name="lgas", null=True, blank=True
+    )
     name = models.CharField(max_length=100)
 
     geometry = models.MultiPolygonField()

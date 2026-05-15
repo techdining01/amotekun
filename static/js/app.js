@@ -95,10 +95,10 @@ fetch('static/data/geoBoundaries-NGA-ADM1_simplified.geojson')
         )
     };
 
-    L.geoJSON(filteredStates, {
+    const layer =L.geoJSON(filteredStates, {
         style: () => ({
             color: "#006400",
-            weight: 2,
+            weight: 1,
             fillColor: "#90ee90",
             fillOpacity: 0.4
         }),
@@ -109,7 +109,6 @@ fetch('static/data/geoBoundaries-NGA-ADM1_simplified.geojson')
         }
     }).addTo(yorubaStatesGroup);
 
-    // map.fitBounds(yorubaStatesLayer.getBounds());
 })
 .catch(err => console.error("STATES ERROR:", err));
 
@@ -124,7 +123,7 @@ fetch('/static/data/LGA_data.geojson')
     // -----------------------------
     // ALL LGAs (Nigeria)
     // -----------------------------
-    L.geoJSON(data, {
+    const layer = L.geoJSON(data, {
         style: {
             color: "#98a094e8",
             weight: 1,
@@ -139,14 +138,14 @@ fetch('/static/data/LGA_data.geojson')
     fetch('/api/yoruba-lgas/')
         .then(res => res.json())
         .then(data => {
-
-            L.geoJSON(data, {
+            console.log("YORUBA LGA DATA:", data);
+            const layer = L.geoJSON(data, {
 
                 style: {
                     color: 'orange',
                     weight: 1,
                     fillColor: 'yellow',
-                    fillOpacity: 0.2
+                    fillOpacity: 0.5
                 },
 
                 onEachFeature: (feature, layer) => {
@@ -158,6 +157,7 @@ fetch('/static/data/LGA_data.geojson')
                 }
 
             }).addTo(yorubaLgaGroup);
+            map.fitBounds(layer.getBounds());
 
         })
         .catch(err => console.error(
@@ -174,7 +174,7 @@ fetch('/api/reports/')
 .then(res => res.json())
 .then(data => {
 
-    L.geoJSON(data, {
+    const layer = L.geoJSON(data, {
 
         pointToLayer: (feature, latlng) => {
 
