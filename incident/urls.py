@@ -25,4 +25,5 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(reports.urls)),
     path("", home, name="home"),
+    
 ]

@@ -1,16 +1,8 @@
-
 // =====================================
-// INITIALIZE MAP
+// MAP INITIALIZATION (CLEAN)
 // =====================================
 
 const map = L.map('map').setView([7.2, 4.5], 7);
-
-// let statesLayer;
-
-// let lgaLayer;
-
-// let incidentsLayer;
-
 
 // =====================================
 // BASEMAP
@@ -21,13 +13,35 @@ const osm = L.tileLayer(
     {
         attribution: '&copy; OpenStreetMap contributors'
     }
-);
+).addTo(map);
 
-osm.addTo(map);
+// =====================================
+// LAYER GROUPS
+// =====================================
+
+const yorubaStatesGroup = L.layerGroup();
+
+const yorubaLgaGroup = L.layerGroup();
+
+const nigeriaLgaGroup = L.layerGroup();
+
+const reportsGroup = L.layerGroup();
+
+const heatmapGroup = L.layerGroup();
+
+const intelligenceGroup = L.layerGroup();
+
+
+yorubaStatesGroup.addTo(map);
+
+yorubaLgaGroup.addTo(map);
+
+reportsGroup.addTo(map);
+
 
 
 // =====================================
-// YORUBA STATES
+// CONFIG
 // =====================================
 
 const yorubaStates = [
@@ -41,218 +55,179 @@ const yorubaStates = [
 
 
 // =====================================
-// STATES LAYER
+// 1. YORUBA STATES (ADM1)
 // =====================================
 
-let statesLayer;
-
-
-// Load ADM1 states GeoJSON
 fetch('static/data/geoBoundaries-NGA-ADM1_simplified.geojson')
-
-.then(response => response.json())
-
+.then(res => res.json())
 .then(data => {
 
-    // Filter Yoruba states
     const filteredStates = {
-
         type: "FeatureCollection",
-
-        features: data.features.filter(feature => {
-
-            return yorubaStates.includes(
-                feature.properties.shapeName
-            );
-
-        })
-
+        features: data.features.filter(f =>
+            yorubaStates.includes(f.properties.shapeName)
+        )
     };
 
-
-    // Create GeoJSON layer
-    statesLayer = L.geoJSON(filteredStates, {
-
-        style: function(feature) {
-
-            return {
-                color: "green",
-                weight: 2,
-                fillColor: "lightgreen",
-                fillOpacity: 0.4
-            };
-
-        },
-
-
-        onEachFeature: function(feature, layer) {
-
-            layer.bindPopup(`
-                <b>State:</b>
-                ${feature.properties.shapeName}
-            `);
-
+    const yorubaStatesLayer = L.geoJSON(filteredStates, {
+        style: () => ({
+            color: "#006400",
+            weight: 2,
+            fillColor: "#90ee90",
+            fillOpacity: 0.4
+        }),
+        onEachFeature: (feature, layer) => {
+            layer.bindPopup(
+                `<b>State:</b> ${feature.properties.shapeName}`
+            );
         }
+    }).addTo(yorubaStatesGroup);
 
-    }).addTo(map);
-
-
-    // Zoom map to Yoruba states
-    map.fitBounds(statesLayer.getBounds());
-
+    map.fitBounds(yorubaStatesLayer.getBounds());
 })
-
-.catch(error => {
-
-    console.error(
-        'Error loading states GeoJSON:',
-        error
-    );
-
-});
-
-
+.catch(err => console.error("STATES ERROR:", err));
 
 // =====================================
-// LGA LAYER
+// 2. LGAs (ALL + YORUBA FILTERED)
 // =====================================
-
-let lgaLayer;
 
 fetch('/static/data/LGA_data.geojson')
-
-.then(response => response.json())
-
+.then(res => res.json())
 .then(data => {
 
-    console.log('LGA DATA:', data);
+    // -----------------------------
+    // ALL LGAs (Nigeria)
+    // -----------------------------
+    const allLgaLayer = L.geoJSON(data, {
+        style: {
+            color: "#98a094e8",
+            weight: 1,
+            fillOpacity: 0.05
+        }
+    });
 
-    lgaLayer = L.geoJSON(data, {
+    // -----------------------------
+    // YORUBA LGAs ONLY
+    // -----------------------------
+    fetch('/api/yoruba-lgas/')
+    .then(res => res.json())
+    .then(data => {
 
-        style: function(feature) {
+        const yorubaLgaLayer = L.geoJSON(data, {
 
-            return {
-
+            style: {
                 color: 'orange',
-
                 weight: 1,
-
                 fillColor: 'yellow',
+                fillOpacity: 0.2
+            },
 
-                fillOpacity: 0.05
+            onEachFeature: (feature, layer) => {
 
-            };
+                layer.bindPopup(`
+                    <b>LGA:</b> ${feature.properties.name}
+                `);
 
-        },
+            }
 
-        onEachFeature: function(feature, layer) {
+        }).addTo(yorubaLgaGroup);
 
-            layer.bindPopup(`
+    });
 
-                <b>LGA:</b>
-
-                ${feature.properties.shapeName}
-
-            `);
-
-        }
-
-    }).addTo(map);
-
-
-    // Add layer control ONLY after layer exists
-    L.control.layers(
-
-        {
-            'OpenStreetMap': osm
-        },
-
-        {
-            'LGAs': lgaLayer
-        }
-
-    ).addTo(map);
+    // // -----------------------------
+    // // LAYER CONTROL (SAFE)
+    // // -----------------------------
+    // L.control.layers(
+    //     {
+    //         "OpenStreetMap": osm
+    //     },
+    //     {
+    //         "Yoruba States": statesLayer,
+    //         "Yoruba LGAs": yorubaLgaLayer,
+    //         "All LGAs (Nigeria)": allLgaLayer
+    //     }
+    // ).addTo(map);
 
 })
-
-.catch(error => {
-
-    console.error(
-        'LGA FETCH ERROR:',
-        error
-    );
-
-const yorubaStates = [
-
-    'Lagos',
-    'Ogun',
-    'Oyo',
-    'Osun',
-    'Ondo',
-    'Ekiti'
-
-];
-
-const filteredFeatures = data.features.filter(feature => {
-
-    return yorubaStates.includes(
-        feature.properties.shapeGroup
-    );
-
-});
-
-
-
-});
-
-
+.catch(err => console.error("LGA ERROR:", err));
 
 // =====================================
-// CURRENT GPS LOCATION
+// 3. USER LOCATION (GPS)
 // =====================================
 
-navigator.geolocation.getCurrentPosition(
+// if (navigator.geolocation) {
 
-    function(position) {
+//     navigator.geolocation.getCurrentPosition(
+//         (position) => {
 
-        const lat = position.coords.latitude;
+//             const lat = position.coords.latitude;
+//             const lng = position.coords.longitude;
 
-        const lng = position.coords.longitude;
+//             console.log("USER LOCATION:", lat, lng);
 
+//             map.setView([lat, lng], 12);
 
-        // User marker
-        const userMarker = L.marker([lat, lng])
+//             L.marker([lat, lng])
+//                 .addTo(map)
+//                 .bindPopup("Your Location")
+//                 .openPopup();
 
-            .addTo(map)
+//             L.circle([lat, lng], {
+//                 radius: position.coords.accuracy,
+//                 color: "blue",
+//                 fillColor: "rgb(134, 236, 108)",
+//                 fillOpacity: 0.2
+//             }).addTo(map);
+//         },
+//         (error) => {
+//             console.error("GEO ERROR:", error);
+//         }
+//     );
+// }
 
-            .bindPopup('ibadan')
+// navigator.geolocation.getCurrentPosition(
 
+//     successCallback,
 
-        // Accuracy circle
-        const accuracyCircle = L.circle([lat, lng], {
+//     errorCallback,
 
-            radius: position.coords.accuracy,
+//     {
+//         enableHighAccuracy: true,
+//         timeout: 10000,
+//         maximumAge: 0
+//     }
+// );
 
-            color: 'blue',
+// =====================================
+// 4. INCIDENTS / REPORTS LAYER
+// =====================================
 
-            fillColor: '#30f',
+fetch('/api/reports/')
+.then(res => {
+    if (!res.ok) throw new Error("Network response not OK");
+    return res.json();
+})
+.then(data => {
 
-            fillOpacity: 0.2
+    console.log("REPORT DATA:", data);
 
-        }).addTo(map);
+    const reportsLayer = L.geoJSON(data, {
 
-    },
+        pointToLayer: (feature, latlng) =>
+            L.marker(latlng),
 
-    function(error) {
+        onEachFeature: (feature, layer) => {
 
-        console.error(
-            'Geolocation error:',
-            error
-        );
+            layer.bindPopup(`
+                <b>${feature.properties.title}</b><br>
+                ${feature.properties.description}<br>
+                <b>Type:</b> ${feature.properties.report_type}
+            `);
+        }
+    }).addTo(reportsGroup);
 
-    }
-
-);
+})
+.catch(err => console.error("REPORT ERROR:", err));
 
 
 // =====================================
@@ -263,68 +238,25 @@ const baseLayers = {
     "OpenStreetMap": osm
 };
 
+const overlayLayers = {
 
-const overlays = {
-    "States": statesLayer,
-    "LGAs": lgaLayer,
-    
+    "Yoruba States": yorubaStatesGroup,
+
+    "Yoruba LGAs": yorubaLgaGroup,
+
+    "Nigeria LGAs": nigeriaLgaGroup,
+
+    "Incident Reports": reportsGroup,
+
+    "Heatmaps": heatmapGroup,
+
+    "Intelligence": intelligenceGroup
 };
-
 
 L.control.layers(
     baseLayers,
-    overlays
+    overlayLayers,
+    {
+        collapsed: false
+    }
 ).addTo(map);
-
-
-
-
-// =====================================
-// REPORTS LAYER
-// =====================================
-
-fetch('/api/reports/')
-
-.then(response => response.json())
-
-.then(data => {
-
-    console.log('REPORT DATA:', data);
-
-    L.geoJSON(data, {
-
-        pointToLayer: function(feature, latlng) {
-
-            return L.marker(latlng);
-
-        },
-
-        onEachFeature: function(feature, layer) {
-
-            layer.bindPopup(`
-
-                <b>${feature.properties.title}</b><br>
-
-                ${feature.properties.description}<br>
-
-                <b>Type:</b>
-
-                ${feature.properties.incident_type}
-
-            `);
-
-        }
-
-    }).addTo(map);
-
-})
-
-.catch(error => {
-
-    console.error(
-        'Incident fetch error:',
-        error
-    );
-
-});
-

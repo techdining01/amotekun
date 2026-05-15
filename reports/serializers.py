@@ -1,6 +1,6 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from .models import Reports, LGA
 
-from .models import Reports
 
 
 class ReportsSerializer(GeoFeatureModelSerializer):
@@ -8,7 +8,27 @@ class ReportsSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Reports
 
-        geo_field = 'location'
+        geo_field = "geometry"
 
-        fields = '__all__'
+        fields = (
+            "id",
+            "title",
+            "description",
+            "report_type",
+            "geometry",
+            "state",
+            "lga",
+            "created_at",
+        )
+
+class LGASerializer(GeoFeatureModelSerializer):
+    class Meta:
+        model = LGA
+
+        geo_field = "geometry"
+
+        fields = (
+            "id",
+            "name",
+        )
 

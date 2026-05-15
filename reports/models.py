@@ -3,17 +3,17 @@ from django.contrib.gis.db import models
 
 class Reports(models.Model):
     REPORT_TYPES = [
-        ('crime', 'Crime'), 
-        ('violence', 'Violence'), 
-        ('fire', 'Fire'), 
-        ('flood', 'Flood'), 
-        ('accident', 'Accident'), 
+        ("crime", "Crime"),
+        ("violence", "Violence"),
+        ("fire", "Fire"),
+        ("flood", "Flood"),
+        ("accident", "Accident"),
     ]
 
     title = models.CharField(max_length=50)
     description = models.TextField()
     report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
-    location = models.PointField()
+    geometry = models.PointField()
     state = models.CharField(max_length=70)
     lga = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -37,7 +37,7 @@ class CrimeHotspot(models.Model):
     severity = models.IntegerField(default=1)
 
     def __str__(self):
-        return f' {self.name}: {self.severity}'
+        return f" {self.name}: {self.severity}"
 
 
 class Road(models.Model):
@@ -47,16 +47,20 @@ class Road(models.Model):
     def __str__(self):
         return self.name
 
-class StateBoundary(models.Model):
+
+class State(models.Model):
     name = models.CharField(max_length=100)
     geometry = models.MultiPolygonField()
 
     def __str__(self):
         return self.name
-    
-class LGABoundary(models.Model):
+
+
+class LGA(models.Model):
+    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="lgas")
+
     name = models.CharField(max_length=100)
-    state = models.ForeignKey("StateBoundary", on_delete=models.CASCADE)
+
     geometry = models.MultiPolygonField()
 
     def __str__(self):
