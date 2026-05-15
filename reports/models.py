@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 
 
-class Reports(models.Model):
+class Incident(models.Model):
     REPORT_TYPES = [
         ("crime", "Crime"),
         ("violence", "Violence"),

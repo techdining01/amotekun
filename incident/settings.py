@@ -16,9 +16,17 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\gdal312.dll"
+# GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\gdal312.dll"
 
-GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\geos_c.dll"
+# GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\geos_c.dll"
+
+GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgdal-35.dll"
+
+GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgeos_c.dll"
+
+
+# GDAL_LIBRARY_PATH = r"C:\OSGeo4W\bin\gdal310.dll"
+# GEOS_LIBRARY_PATH = r"C:\OSGeo4W\bin\geos_c.dll"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -44,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework_gis",
     "corsheaders",
     "reports",
     "stations",

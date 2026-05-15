@@ -1,10 +1,10 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import Reports, LGA
+from .models import Incident, LGA
 
 
-class ReportsSerializer(GeoFeatureModelSerializer):
+class IncidentSerializer(GeoFeatureModelSerializer):
     class Meta:
-        model = Reports
+        model = Incident
 
         geo_field = "geometry"
 
