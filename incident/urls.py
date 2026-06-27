@@ -17,13 +17,13 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
-from reports.views import home
+from .views import home
 import reports.urls
 
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(reports.urls)),
+    path("api/stations/", include("stations.urls")),
     path("", home, name="home"),
-    
 ]

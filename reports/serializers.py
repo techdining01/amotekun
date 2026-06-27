@@ -1,4 +1,5 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
+from rest_framework import serializers
 from .models import Incident, LGA
 
 
@@ -20,6 +21,9 @@ class IncidentSerializer(GeoFeatureModelSerializer):
 
 
 class LGASerializer(GeoFeatureModelSerializer):
+    state_name = serializers.CharField(source='state.name', read_only=True)
+    state_id = serializers.IntegerField(source='state.id', read_only=True)
+
     class Meta:
         model = LGA
 
@@ -28,4 +32,6 @@ class LGASerializer(GeoFeatureModelSerializer):
         fields = (
             "id",
             "name",
+            "state_id",
+            "state_name",
         )
