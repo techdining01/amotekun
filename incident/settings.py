@@ -12,22 +12,32 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
-from decouple import config
+from decouple import config, Csv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\gdal312.dll"
-
-# GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\geos_c.dll"
-
-GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgdal-35.dll"
-
-GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgeos_c.dll"
-
-
-# GDAL_LIBRARY_PATH = r"C:\OSGeo4W\bin\gdal310.dll"
-# GEOS_LIBRARY_PATH = r"C:\OSGeo4W\bin\geos_c.dll"
+# GDAL/GEOS library paths.
+# On Windows the shared libraries usually need to be located explicitly; on
+# Linux/macOS (and in Docker) Django auto-detects them, so only set a path when
+# one is provided via the environment. This keeps the project runnable on every
+# platform without editing settings.
+if os.name == "nt":
+    GDAL_LIBRARY_PATH = config(
+        "GDAL_LIBRARY_PATH",
+        default=r"C:\Program Files\PostgreSQL\16\bin\libgdal-35.dll",
+    )
+    GEOS_LIBRARY_PATH = config(
+        "GEOS_LIBRARY_PATH",
+        default=r"C:\Program Files\PostgreSQL\16\bin\libgeos_c.dll",
+    )
+else:
+    _gdal = config("GDAL_LIBRARY_PATH", default="")
+    _geos = config("GEOS_LIBRARY_PATH", default="")
+    if _gdal:
+        GDAL_LIBRARY_PATH = _gdal
+    if _geos:
+        GEOS_LIBRARY_PATH = _geos
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -36,9 +46,9 @@ GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgeos_c.dll"
 SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", True)
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="localhost,127.0.0.1", cast=Csv())
 
 
 # Application definition
@@ -69,10 +79,15 @@ INSTALLED_APPS = [
     "notifications",
     "chat",
     "surveillance",
+    "api",
+    "citizen",
+    "dashboard",
+    "intelligence",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -134,11 +149,11 @@ CHANNEL_LAYERS = {
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "amotekun_db",
-        "HOST": "localhost",
-        "PORT": 5432,
-        "USER": "postgres",
-        "PASSWORD": "idrees",
+        "NAME": config("DB_NAME", default="amotekun_db"),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default=5432, cast=int),
+        "USER": config("DB_USER", default="postgres"),
+        "PASSWORD": config("DB_PASSWORD"),
     }
 }
 
@@ -209,14 +224,46 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_PROVIDERS = {}
 
 # REST Framework authentication
+# Secure-by-default: every endpoint requires authentication unless a view
+# explicitly opts into public access with `permission_classes = [AllowAny]`
+# (e.g. citizen incident reporting and public map data). For a police/dispatch
+# system the safe failure mode is "locked", not "open".
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# CORS (django-cors-headers). Restrict to known frontends; never use
+# CORS_ALLOW_ALL_ORIGINS in production.
+CORS_ALLOWED_ORIGINS = config(
+    "CORS_ALLOWED_ORIGINS",
+    default="http://localhost:8000,http://127.0.0.1:8000",
+    cast=Csv(),
+)
+CORS_ALLOW_CREDENTIALS = True
+
+# Symmetric key used to encrypt sensitive fields at rest (e.g. camera RTSP
+# credentials). Generate with:
+#   python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+FIELD_ENCRYPTION_KEY = config("FIELD_ENCRYPTION_KEY", default="")
+
+# Production security hardening (only enforced when DEBUG is off so local dev over
+# http still works). See Django deployment checklist.
+if not DEBUG:
+    SECURE_SSL_REDIRECT = config("SECURE_SSL_REDIRECT", default=True, cast=bool)
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = config("SECURE_HSTS_SECONDS", default=31536000, cast=int)
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    CSRF_TRUSTED_ORIGINS = config(
+        "CSRF_TRUSTED_ORIGINS", default="", cast=Csv()
+    )
 
 

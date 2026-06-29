@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.gis.db import models as gis_models
 from django.conf import settings
 
+from .fields import EncryptedCharField
+
 
 class Camera(models.Model):
     """CCTV Camera model with identification via MAC address or camera ID"""
@@ -60,8 +62,9 @@ class Camera(models.Model):
     port = models.IntegerField(default=80)
     rtsp_url = models.URLField(max_length=500, blank=True, help_text="RTSP stream URL")
     hls_url = models.URLField(max_length=500, blank=True, help_text="HLS stream URL")
-    username = models.CharField(max_length=100, blank=True)
-    password = models.CharField(max_length=100, blank=True)
+    # Stored encrypted at rest and never exposed via the API serializer.
+    username = EncryptedCharField(blank=True)
+    password = EncryptedCharField(blank=True)
     
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='offline')

@@ -28,6 +28,7 @@ urlpatterns = [
     path("api/stations/", include("stations.urls")),
     path("api/dispatch/", include("dispatch.urls")),
     path("api/chat/", include("chat.urls")),
+    path("api/surveillance/", include("surveillance.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("", home, name="home"),
 ]

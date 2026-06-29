@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 from .models import PoliceStation, AmotekunStation
 from .serializers import PoliceStationSerializer, AmotekunStationSerializer
@@ -26,6 +27,9 @@ def _fast_knn_station(table, lon, lat, limit=1):
 
 class NearestStationAPIView(APIView):
     """GET /api/stations/nearest/?lat=..&lon=..&type=police|amotekun&limit=1"""
+
+    # Public: used by the citizen map to find the nearest responder.
+    permission_classes = [AllowAny]
 
     def get(self, request):
         try:
@@ -58,6 +62,9 @@ class RouteByPgRoutingAPIView(APIView):
 
     Query params: src_lon, src_lat, dst_lon, dst_lat
     """
+
+    # Public: routing for the citizen map.
+    permission_classes = [AllowAny]
 
     def get(self, request):
         try:
@@ -94,6 +101,9 @@ class RouteByPgRoutingAPIView(APIView):
 class PoliceStationListAPIView(APIView):
     """GET /api/stations/police/ - list all police stations"""
 
+    # Public reference/map data.
+    permission_classes = [AllowAny]
+
     def get(self, request):
         stations = PoliceStation.objects.all()
         serializer = PoliceStationSerializer(stations, many=True)
@@ -102,6 +112,9 @@ class PoliceStationListAPIView(APIView):
 
 class AmotekunStationListAPIView(APIView):
     """GET /api/stations/amotekun/ - list all amotekun stations"""
+
+    # Public reference/map data.
+    permission_classes = [AllowAny]
 
     def get(self, request):
         stations = AmotekunStation.objects.all()

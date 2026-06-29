@@ -6,6 +6,7 @@ from .serializers import IncidentSerializer, LGASerializer
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 
 
 def incident_create_view(request):
@@ -55,6 +56,8 @@ def get_location_from_point(point):
 
 
 class IncidentCreateAPIView(CreateAPIView):
+    # Public: citizens (incl. anonymous) must be able to report incidents.
+    permission_classes = [AllowAny]
     queryset = Incident.objects.all()
     serializer_class = IncidentSerializer
 
@@ -104,6 +107,9 @@ class IncidentCreateAPIView(CreateAPIView):
 
 
 class IncidentViewset(viewsets.ModelViewSet):
+    # Anyone may read incidents for the public map; only authenticated
+    # operators may create/update/delete.
+    permission_classes = [IsAuthenticatedOrReadOnly]
     queryset = Incident.objects.all()
     serializer_class = IncidentSerializer
 
@@ -137,6 +143,8 @@ class IncidentViewset(viewsets.ModelViewSet):
 
 
 class YorubaLGAAPIView(ListAPIView):
+    # Public reference/map data.
+    permission_classes = [AllowAny]
     serializer_class = LGASerializer
 
     def get_queryset(self):
@@ -146,6 +154,8 @@ class YorubaLGAAPIView(ListAPIView):
         return LGA.objects.filter(state__name__in=yoruba_states)
     
 class StateLGAAPIView(ListAPIView):
+    # Public reference/map data.
+    permission_classes = [AllowAny]
     serializer_class = LGASerializer
 
     def get_queryset(self):
@@ -155,6 +165,9 @@ class StateLGAAPIView(ListAPIView):
         return LGA.objects.filter(state__name=state_name)
     
 class HotspotAPIView(APIView):
+    # Public aggregate map data (counts only).
+    permission_classes = [AllowAny]
+
     def get(self, request):
 
         hotspots = []
@@ -170,6 +183,9 @@ class HotspotAPIView(APIView):
 
 
 class LGACentroidAPIView(APIView):
+    # Public reference/map data.
+    permission_classes = [AllowAny]
+
     def get(self, request, pk):
         try:
             lga = LGA.objects.get(pk=pk)
@@ -186,6 +202,9 @@ class LGACentroidAPIView(APIView):
 
 
 class IncidentTypeFilterView(APIView):
+    # Public map data (read-only).
+    permission_classes = [AllowAny]
+
     def get(self, request, report_type=None):
         incidents = Incident.objects.all()
         if report_type:

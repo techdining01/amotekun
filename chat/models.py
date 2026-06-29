@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 
 class ChatRoom(models.Model):
@@ -45,7 +46,7 @@ class ChatRoom(models.Model):
     def get_participants(self):
         """Get all users who have sent messages in this room"""
         user_ids = self.messages.values_list('sender', flat=True).distinct()
-        return settings.AUTH_USER_MODEL.objects.filter(id__in=user_ids)
+        return get_user_model().objects.filter(id__in=user_ids)
 
 
 class ChatMessage(models.Model):

@@ -1,7 +1,22 @@
-# Phase 9: Frontend Integration Documentation
+# Realtime & Comms Increment
 
-## Overview
-Phase 9 implements frontend integration features including sound alerts, real-time chat for operatives, and CCTV camera integration with identification via MAC address or camera ID.
+> **Note on naming (important):** This work was previously (incorrectly) labelled
+> "Phase 9". In the locked roadmap, **Phase 9 = Traffic Intelligence**. The features
+> below are a *cross-cutting Realtime & Comms increment* that primarily delivers
+> **Phase 8 (Real-Time Alerts)** capabilities (notifications, operative chat, sound
+> alerts) plus a **CCTV camera *registry*** that lays the foundation for
+> **Phase 12 (CCTV Streaming & Analytics)**. Full RTSP ingest, WebRTC streaming,
+> recording, and YOLO-based analytics remain **Phase 12** — see
+> `project architecture.md` → "Video / Image / Alert Processing Pipeline".
+>
+> After this increment, development returns to **Phase 9 = Traffic Intelligence**.
+
+## Scope of this increment
+- Sound alerts (chat / critical / severity)
+- Real-time notifications over WebSocket (Phase 8)
+- Operative chat (REST today; WebSocket consumer is a follow-up — see "Next Steps")
+- CCTV camera **registry** model (identification, location, station association) —
+  this is metadata/management only; it does **not** stream or analyse video yet.
 
 ## Features Implemented
 
@@ -148,15 +163,14 @@ client.requestUnreadCount();
 
 ## Setup Instructions
 
-### 1. Run Setup Script
+### 1. Run migrations
 ```bash
-./setup_phase9.bat
+python manage.py makemigrations chat surveillance
+python manage.py migrate
 ```
 
-This will:
-- Create migrations for chat app
-- Create migrations for surveillance app
-- Apply all migrations
+> The legacy Windows-only `setup_phase9.bat` is deprecated; use the cross-platform
+> commands above (or `make migrate` once a Makefile is added).
 
 ### 2. Add Audio Files
 Replace placeholder audio files in `static/audio/`:
