@@ -23,7 +23,11 @@ import reports.urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("accounts/", include("allauth.urls")),
     path("api/", include(reports.urls)),
     path("api/stations/", include("stations.urls")),
+    path("api/dispatch/", include("dispatch.urls")),
+    path("api/chat/", include("chat.urls")),
+    path("dashboard/", include("dashboard.urls")),
     path("", home, name="home"),
 ]

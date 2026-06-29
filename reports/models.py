@@ -1,4 +1,5 @@
 from django.contrib.gis.db import models
+from django.conf import settings
 
 
 class Incident(models.Model):
@@ -10,6 +11,12 @@ class Incident(models.Model):
         ("accident", "Accident"),
     ]
 
+    reporter = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name="reported_incidents"
+    )
     title = models.CharField(max_length=50)
     description = models.TextField()
     report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
@@ -25,7 +32,7 @@ class Incident(models.Model):
 class FloodZone(models.Model):
     name = models.CharField(max_length=100)
     geometry = models.PolygonField()
-    risk_level = models.CharField
+    risk_level = models.CharField(max_length=50, choices=[("low", "Low"), ("medium", "Medium"), ("high", "High")], default="low")
 
     def __str__(self):
         return self.name
@@ -41,7 +48,7 @@ class CrimeHotspot(models.Model):
 
 
 class Road(models.Model):
-    name = models.CharField
+    name = models.CharField(max_length=255)
     geometry = models.LineStringField()
 
     def __str__(self):

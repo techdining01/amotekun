@@ -91,6 +91,24 @@ class RouteByPgRoutingAPIView(APIView):
             )
 
 
+class PoliceStationListAPIView(APIView):
+    """GET /api/stations/police/ - list all police stations"""
+
+    def get(self, request):
+        stations = PoliceStation.objects.all()
+        serializer = PoliceStationSerializer(stations, many=True)
+        return Response(serializer.data)
+
+
+class AmotekunStationListAPIView(APIView):
+    """GET /api/stations/amotekun/ - list all amotekun stations"""
+
+    def get(self, request):
+        stations = AmotekunStation.objects.all()
+        serializer = AmotekunStationSerializer(stations, many=True)
+        return Response(serializer.data)
+
+
 from django.shortcuts import render
 
 # Create your views here.

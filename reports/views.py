@@ -33,7 +33,8 @@ def incident_create_view(request):
                     lga=lga_name or 'Unknown',
                     geometry=point
                 )
-                return render(request, 'cotton/incident_item.html', {'incident': incident})
+                from django.http import HttpResponse
+                return HttpResponse(status=204, headers={'HX-Trigger': 'incidentAdded'})
             except (ValueError, TypeError):
                 pass
     
