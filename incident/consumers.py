@@ -33,11 +33,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
     
     async def disconnect(self, close_code):
         """Handle WebSocket disconnection"""
-        # Leave user's notification group
-        await self.channel_layer.group_discard(
-            self.user_group_name,
-            self.channel_name
-        )
+        # Leave user's notification group (only if we joined)
+        if hasattr(self, 'user_group_name'):
+            await self.channel_layer.group_discard(
+                self.user_group_name,
+                self.channel_name
+            )
     
     async def receive(self, text_data):
         """Handle incoming WebSocket messages"""

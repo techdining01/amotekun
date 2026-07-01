@@ -31,40 +31,30 @@
 
 {% block content %}
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Active Assignments</h3>
-        <p class="text-3xl font-bold text-blue-600">0</p>
-        <p class="text-sm text-gray-500">Currently assigned</p>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Completed Today</h3>
-        <p class="text-3xl font-bold text-green-600">0</p>
-        <p class="text-sm text-gray-500">Resolved incidents</p>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Pending</h3>
-        <p class="text-3xl font-bold text-orange-600">0</p>
-        <p class="text-sm text-gray-500">Awaiting response</p>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Total This Week</h3>
-        <p class="text-3xl font-bold text-purple-600">0</p>
-        <p class="text-sm text-gray-500">Assignments</p>
-    </div>
+    {% cotton statistics_card title="Active Assignments" value="0" value_color="text-blue-600" subtitle="Currently assigned" %}{% endcotton %}
+    {% cotton statistics_card title="Completed Today" value="0" value_color="text-green-600" subtitle="Resolved incidents" %}{% endcotton %}
+    {% cotton statistics_card title="Pending" value="0" value_color="text-orange-600" subtitle="Awaiting response" %}{% endcotton %}
+    {% cotton statistics_card title="Total This Week" value="0" value_color="text-purple-600" subtitle="Assignments" %}{% endcotton %}
 </div>
 
-<div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Current Assignments</h2>
-    <p class="text-gray-500">No active assignments at this time.</p>
-</div>
+{% cotton card %}
+    {% cotton:slot "header" %}
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Current Assignments</h2>
+    {% endcotton:slot %}
+    {% cotton:slot "body" %}
+        <p class="text-gray-500">No active assignments at this time.</p>
+    {% endcotton:slot %}
+{% endcotton %}
 
-<div class="bg-white rounded-lg shadow p-6 mt-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Report Incident</h2>
-    <p class="text-gray-600 mb-4">Report incidents you observe while on patrol.</p>
-    <a href="/" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-        Go to Map
-    </a>
-</div>
+{% cotton card %}
+    {% cotton:slot "header" %}
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Report Incident</h2>
+    {% endcotton:slot %}
+    {% cotton:slot "body" %}
+        <p class="text-gray-600 mb-4">Report incidents you observe while on patrol.</p>
+        {% cotton button variant="primary" %}Go to Map{% endcotton %}
+    {% endcotton:slot %}
+{% endcotton %}
 
 <!-- Chat Component -->
 {% include "dashboard/chat_component.html" %}

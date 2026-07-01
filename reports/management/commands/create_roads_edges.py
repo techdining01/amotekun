@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.db import connection
+from psycopg2 import sql
 
 
 class Command(BaseCommand):
@@ -26,11 +27,11 @@ class Command(BaseCommand):
 
         with connection.cursor() as cur:
             # verify source table exists
-            cur.execute("SELECT to_regclass(%s)", [f"public.{table}"])
+            cur.execute("SELECT to_regclass(%s)", [table])
             reg = cur.fetchone()[0]
             if not reg:
                 self.stdout.write(
-                    self.style.ERROR(f"Source table public.{table} not found")
+                    self.style.ERROR(f"Source table {table} not found")
                 )
                 return
 
@@ -55,14 +56,9 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f"Running pgr_createTopology on {table} (tolerance={tol})..."
                     )
-                    # Explicitly cast arguments to match pgr_createTopology signature
                     cur.execute(
-                        "SELECT pgr_createTopology("
-                        "CAST(%s AS text), "
-                        "CAST(%s AS double precision), "
-                        "CAST(%s AS text), "
-                        "CAST(%s AS text));",
-                        [f"public.{table}", tol, geom, "id"],
+                        "SELECT pgr_createTopology(%s, %s, %s, %s);",
+                        [table, tol, geom, "id"],
                     )
                 except Exception as e:
                     self.stdout.write(
@@ -76,10 +72,16 @@ class Command(BaseCommand):
 
             # create roads_edges table from the table with cost = length in meters (transform to 3857)
             try:
-                cur.execute("DROP TABLE IF EXISTS public.roads_edges CASCADE;")
+                cur.execute(sql.SQL("DROP TABLE IF EXISTS public.{} CASCADE;").format(
+                    sql.Identifier("roads_edges")
+                ))
                 cur.execute(
-                    "CREATE TABLE public.roads_edges AS SELECT id, source, target, ST_Length(ST_Transform(%s::geometry,3857)) AS cost FROM public.%s;"
-                    % (geom, table)
+                    sql.SQL(
+                        "CREATE TABLE public.roads_edges AS SELECT id, source, target, "
+                        "ST_Length(ST_Transform({}::geography, 3857)::geometry) AS cost, "
+                        "ST_Length(ST_Transform({}::geography, 3857)::geometry) AS reverse_cost "
+                        "FROM public.{};"
+                    ).format(sql.Identifier(geom), sql.Identifier(geom), sql.Identifier(table))
                 )
                 cur.execute("ALTER TABLE public.roads_edges ADD PRIMARY KEY (id);")
                 cur.execute(

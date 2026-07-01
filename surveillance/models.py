@@ -1,7 +1,8 @@
 from django.db import models
-from django.contrib.gis.db import models as gis_models
 from django.conf import settings
-
+from django.contrib.gis.db import models as gis_models
+from cryptography.fernet import Fernet
+import base64
 
 class Camera(models.Model):
     """CCTV Camera model with identification via MAC address or camera ID"""
@@ -34,7 +35,7 @@ class Camera(models.Model):
     model = models.CharField(max_length=100, blank=True)
     
     # Location
-    location = gis_models.PointField(srid=4326, help_text="Camera GPS coordinates")
+    location = gis_models.PointField(srid=4326, geography=True, help_text="Camera GPS coordinates")
     address = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
@@ -61,7 +62,7 @@ class Camera(models.Model):
     rtsp_url = models.URLField(max_length=500, blank=True, help_text="RTSP stream URL")
     hls_url = models.URLField(max_length=500, blank=True, help_text="HLS stream URL")
     username = models.CharField(max_length=100, blank=True)
-    password = models.CharField(max_length=100, blank=True)
+    password = models.CharField(max_length=255, blank=True, help_text="Encrypted at rest")
     
     # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='offline')
@@ -120,6 +121,73 @@ class Camera(models.Model):
         self.status = 'offline'
         self.last_offline = timezone.now()
         self.save()
+    
+    def set_password(self, raw_password):
+        """Encrypt and set camera password"""
+        if not raw_password:
+            self.password = ''
+            return
+        
+        # Ensure encryption key exists
+        camera_encryption_key = getattr(settings, 'CAMERA_ENCRYPTION_KEY', None)
+        if not camera_encryption_key:
+            # Fallback to SECRET_KEY if CAMERA_ENCRYPTION_KEY not set
+            camera_encryption_key = settings.SECRET_KEY
+        
+        # Ensure key is valid for Fernet (32 bytes, base64 encoded)
+        if len(camera_encryption_key) != 44:  # Fernet keys are 44 characters when base64 encoded
+            # Derive a proper key from the SECRET_KEY
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+            from cryptography.hazmat.primitives import hashes
+            
+            salt = b'amotekun_camera_encryption'  # Fixed salt for consistency
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=salt,
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(camera_encryption_key.encode()))
+            fernet = Fernet(key)
+        else:
+            fernet = Fernet(camera_encryption_key.encode())
+        
+        self.password = fernet.encrypt(raw_password.encode()).decode()
+    
+    def get_password(self):
+        """Decrypt and return camera password"""
+        if not self.password:
+            return ''
+        
+        # Ensure encryption key exists
+        camera_encryption_key = getattr(settings, 'CAMERA_ENCRYPTION_KEY', None)
+        if not camera_encryption_key:
+            # Fallback to SECRET_KEY if CAMERA_ENCRYPTION_KEY not set
+            camera_encryption_key = settings.SECRET_KEY
+        
+        # Ensure key is valid for Fernet
+        if len(camera_encryption_key) != 44:
+            # Derive the same key as in set_password
+            from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+            from cryptography.hazmat.primitives import hashes
+            
+            salt = b'amotekun_camera_encryption'
+            kdf = PBKDF2HMAC(
+                algorithm=hashes.SHA256(),
+                length=32,
+                salt=salt,
+                iterations=100000,
+            )
+            key = base64.urlsafe_b64encode(kdf.derive(camera_encryption_key.encode()))
+            fernet = Fernet(key)
+        else:
+            fernet = Fernet(camera_encryption_key.encode())
+        
+        try:
+            return fernet.decrypt(self.password.encode()).decode()
+        except Exception:
+            # If decryption fails, return empty string
+            return ''
 
 
 class CameraRecording(models.Model):
@@ -213,3 +281,4 @@ class CameraAlert(models.Model):
         self.acknowledged_by = user
         self.acknowledged_at = timezone.now()
         self.save()
+

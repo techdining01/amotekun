@@ -16,33 +16,17 @@ class Application {
         console.log('Initializing Amotekun Application...');
         
         try {
-            // Initialize UI components first
             this.uiManager = uiManager;
-            
-            // Initialize modal manager
             this.modalManager = modalManager;
             this.modalManager.init();
-            
-            // Initialize dropdown manager
             this.dropdownManager = dropdownManager;
             this.dropdownManager.init();
-            
-            // Initialize data loader
             this.dataLoader = dataLoader;
-            
-            // Initialize map
             this.mapManager = mapManager;
             this.map = this.mapManager.init();
-            
-            // Load initial data
             await this.loadInitialData();
-            
-            // Setup map interactions
             this.setupMapInteractions();
-            
-            // Expose refresh function globally
             window.refreshIncidents = () => this.refreshIncidents();
-            
             console.log('Application initialized successfully');
         } catch (error) {
             console.error('Failed to initialize application:', error);
@@ -52,20 +36,20 @@ class Application {
 
     async loadInitialData() {
         try {
-            // Load incidents
             const incidents = await this.dataLoader.loadIncidents();
             this.displayIncidents(incidents);
-            
-            // Load stations
             const policeStations = await this.dataLoader.loadPoliceStations();
             const amotekunStations = await this.dataLoader.loadAmotekunStations();
             this.displayStations(policeStations, 'police');
             this.displayStations(amotekunStations, 'amotekun');
-            
-            // Load GeoJSON data (for location lookup)
+            try {
+                const hospitals = await this.dataLoader.loadHospitals();
+                this.displayStations(hospitals, 'hospital');
+            } catch (e) {
+                console.warn('Hospitals not available:', e);
+            }
             await this.dataLoader.loadLGAData();
             await this.dataLoader.loadStateData();
-            
         } catch (error) {
             console.error('Failed to load initial data:', error);
         }
@@ -85,18 +69,17 @@ class Application {
     }
 
     setupMapInteractions() {
-        // Map click handler is set up in modal manager
-        // Additional map interactions can be added here
+        // Map click handler is set up below
     }
 
     async refreshIncidents() {
         try {
             const incidents = await this.dataLoader.loadIncidents();
-            this.displayIncidents(incidents);
-            this.uiManager.showNotification('Incidents refreshed', 'success');
+            if (incidents && incidents.length > 0) {
+                this.displayIncidents(incidents);
+            }
         } catch (error) {
             console.error('Failed to refresh incidents:', error);
-            this.uiManager.showNotification('Failed to refresh incidents', 'error');
         }
     }
 
@@ -104,9 +87,11 @@ class Application {
         try {
             const policeStations = await this.dataLoader.loadPoliceStations();
             const amotekunStations = await this.dataLoader.loadAmotekunStations();
+            const hospitals = await this.dataLoader.loadHospitals();
             this.mapManager.clearStations();
             this.displayStations(policeStations, 'police');
             this.displayStations(amotekunStations, 'amotekun');
+            this.displayStations(hospitals, 'hospital');
             this.uiManager.showNotification('Stations refreshed', 'success');
         } catch (error) {
             console.error('Failed to refresh stations:', error);
@@ -152,17 +137,144 @@ class Application {
     }
 }
 
-// Initialize application when DOM is ready
-let app;
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', async () => {
-        app = new Application();
-        await app.init();
-    });
-} else {
-    app = new Application();
-    app.init();
+// Geocoding with Nominatim (OpenStreetMap) + Toast notifications
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #333; color: white; padding: 12px 20px; border-radius: 6px; z-index: 10000; font-size: 14px;';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-// Expose app instance globally
+async function geocodeLocation(query) {
+    if (!query || !query.trim()) return null;
+    
+    try {
+        const response = await fetch(
+            'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1'
+        );
+        const data = await response.json();
+        if (data && data.length > 0) {
+            return {
+                lat: parseFloat(data[0].lat),
+                lng: parseFloat(data[0].lon),
+                display_name: data[0].display_name
+            };
+        }
+        return null;
+    } catch (error) {
+        console.error('Geocode error:', error);
+        return null;
+    }
+}
+
+// Initialize application
+let app;
+
+window.addEventListener('load', async () => {
+    const incidentBtn = document.getElementById('incident-btn');
+    const dispatchBtn = document.getElementById('dispatch-btn');
+    
+    console.log('Buttons found:', !!incidentBtn, !!dispatchBtn);
+    
+    if (incidentBtn) {
+        incidentBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Incident button clicked');
+            const sidebar = document.getElementById('incident-sidebar');
+            if (sidebar) {
+                sidebar.style.display = 'block';
+            }
+        });
+    }
+    
+    if (dispatchBtn) {
+        dispatchBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Dispatch button clicked');
+            const sidebar = document.getElementById('dispatch-sidebar');
+            if (sidebar) {
+                sidebar.style.display = 'block';
+            }
+        });
+    }
+    
+    // Geocode button handler
+    const geocodeBtn = document.getElementById('geocode-btn');
+    if (geocodeBtn) {
+        geocodeBtn.addEventListener('click', async () => {
+            const locationInput = document.getElementById('location_search');
+            const latInput = document.getElementById('latitude');
+            const lngInput = document.getElementById('longitude');
+            
+            if (!locationInput || !locationInput.value) {
+                showToast('Please enter a location');
+                return;
+            }
+            
+            const result = await geocodeLocation(locationInput.value);
+            if (result) {
+                latInput.value = result.lat;
+                lngInput.value = result.lng;
+                if (window._map) {
+                    window._map.setView([result.lat, result.lng], 14);
+                }
+            } else {
+                showToast('Location not found');
+            }
+        });
+    }
+    
+    // Initialize app
+    if (typeof mapManager !== 'undefined') {
+        app = new Application();
+        await app.init();
+        
+        if (window._map) {
+            window._map.on('click', function(e) {
+                const latInput = document.getElementById('latitude');
+                const lngInput = document.getElementById('longitude');
+                if (latInput && lngInput) {
+                    latInput.value = e.latlng.lat.toFixed(6);
+                    lngInput.value = e.latlng.lng.toFixed(6);
+                }
+                const sidebar = document.getElementById('incident-sidebar');
+                if (sidebar) {
+                    sidebar.style.display = 'block';
+                }
+            });
+        }
+
+        // HTMX custom event triggered by incident-create view
+        document.body.addEventListener('incidentAdded', function() {
+            const sidebar = document.getElementById('incident-sidebar');
+            if (sidebar) sidebar.style.display = 'none';
+            
+            // Add just-created incident to map
+            const lat = document.getElementById('latitude')?.value;
+            const lng = document.getElementById('longitude')?.value;
+            const title = document.getElementById('title')?.value;
+            const description = document.getElementById('description')?.value;
+            const reportType = document.getElementById('report_type')?.value;
+            
+            if (lat && lng && app && app.mapManager) {
+                app.mapManager.addIncidentMarker({
+                    geometry: { coordinates: [parseFloat(lng), parseFloat(lat)] },
+                    properties: { title, description, report_type: reportType }
+                });
+                showToast('Incident reported successfully');
+            }
+        });
+
+        // HTMX custom event triggered by dispatch-create
+        document.body.addEventListener('dispatchAdded', function() {
+            const sidebar = document.getElementById('dispatch-sidebar');
+            if (sidebar) sidebar.style.display = 'none';
+            showToast('Dispatch created successfully');
+        });
+    }
+});
+
 window.app = app;

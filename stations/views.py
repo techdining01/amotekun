@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
-from .models import PoliceStation, AmotekunStation
-from .serializers import PoliceStationSerializer, AmotekunStationSerializer
+from .models import PoliceStation, AmotekunStation, Hospital
+from .serializers import PoliceStationSerializer, AmotekunStationSerializer, HospitalSerializer
 
 
 def _fast_knn_station(table, lon, lat, limit=1):
@@ -109,6 +109,10 @@ class AmotekunStationListAPIView(APIView):
         return Response(serializer.data)
 
 
-from django.shortcuts import render
+class HospitalListAPIView(APIView):
+    """GET /api/stations/hospitals/ - list all hospitals"""
 
-# Create your views here.
+    def get(self, request):
+        hospitals = Hospital.objects.all()
+        serializer = HospitalSerializer(hospitals, many=True)
+        return Response(serializer.data)

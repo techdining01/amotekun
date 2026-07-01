@@ -1,5 +1,5 @@
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
-from .models import PoliceStation, AmotekunStation
+from .models import PoliceStation, AmotekunStation, Hospital
 
 
 class PoliceStationSerializer(GeoFeatureModelSerializer):
@@ -14,3 +14,10 @@ class AmotekunStationSerializer(GeoFeatureModelSerializer):
         model = AmotekunStation
         geo_field = "location"
         fields = ("id", "name", "address", "state", "lga")
+
+
+class HospitalSerializer(GeoFeatureModelSerializer):
+    class Meta:
+        model = Hospital
+        geo_field = "location"
+        fields = ("id", "name", "address", "state", "lga", "has_emergency")

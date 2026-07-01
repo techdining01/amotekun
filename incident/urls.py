@@ -20,14 +20,18 @@ from django.urls import path, include
 from .views import home
 import reports.urls
 
-
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("accounts/", include("allauth.urls")),
+    path("api/geography/", include("geography.urls")),
     path("api/", include(reports.urls)),
     path("api/stations/", include("stations.urls")),
     path("api/dispatch/", include("dispatch.urls")),
     path("api/chat/", include("chat.urls")),
+    path("api/surveillance/", include("surveillance.urls")),
+    path("api/traffic/", include("traffic.urls")),
+    path("api/analytics/", include("analytics.urls")),
+    path("api/mobile/", include("mobile.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("", home, name="home"),
 ]

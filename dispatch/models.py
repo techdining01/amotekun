@@ -1,6 +1,6 @@
 from django.db import models
 from django.conf import settings
-from reports.models import Incident
+from reports.models import Incident as Report
 from stations.models import PoliceStation, AmotekunStation
 
 
@@ -23,7 +23,7 @@ class Dispatch(models.Model):
     }
     
     incident = models.ForeignKey(
-        Incident, on_delete=models.CASCADE, related_name="dispatches")
+        Report, on_delete=models.CASCADE, related_name="dispatches")
     police_station = models.ForeignKey(
         PoliceStation, on_delete=models.SET_NULL, null=True, blank=True, related_name="dispatches")
     amotekun_station = models.ForeignKey(

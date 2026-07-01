@@ -3,6 +3,7 @@ import json
 from django.core.management.base import BaseCommand
 
 from django.contrib.gis.geos import GEOSGeometry
+from django.contrib.gis.geos import MultiPolygon
 
 from reports.models import State
 
@@ -27,6 +28,8 @@ class Command(BaseCommand):
             state_name = props["shapeName"]
 
             geom = GEOSGeometry(json.dumps(geometry))
+            if geom.geom_type == 'Polygon':
+                geom = MultiPolygon(geom)
 
             state, created = State.objects.get_or_create(
                 name=state_name, defaults={"geometry": geom}

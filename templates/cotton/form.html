@@ -1,0 +1,11 @@
+<form {% if hx_attrs %}{{ hx_attrs|safe }}{% endif %} class="space-y-6 {{ class }}">
+    {% csrf_token %}
+    {% block form_content %}{% endblock %}
+</form>
+
+{% comment %}
+Usage:
+{% cotton form hx_attrs='hx-post="/url/" hx-target="#target" hx-swap="innerHTML"' class="p-6" %}
+    {{ form.as_p }}
+{% endcottonscotton %}
+{% endcomment %}

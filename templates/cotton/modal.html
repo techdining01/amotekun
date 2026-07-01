@@ -1,0 +1,37 @@
+<div x-show="show" x-cloak class="fixed inset-0 z-[1100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="close"></div>
+
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-6 pt-6 pb-4">
+                <div class="flex items-start justify-between">
+                    <h2 class="text-xl font-medium text-gray-900" id="modal-title">
+                        {{ title }}
+                    </h2>
+                    <button type="button" class="ml-1 flex h-6 w-6 items-center justify-center rounded-md focus:outline-none text-gray-400 hover:text-gray-500 hover:bg-gray-100" @click="close">
+                        <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 pb-6 px-6">
+                {{ content }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('modal' + '{{ unique_id|default:"" }}', () => ({
+            open: false,
+            openModal() {
+                this.open = true
+            },
+            close() {
+                this.open = false
+            }
+        }))
+    })
+</script>

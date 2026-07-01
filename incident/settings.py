@@ -21,7 +21,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\geos_c.dll"
 
-GDAL_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgdal-35.dll"
+GDAL_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\gdal312.dll"
+GEOS_LIBRARY_PATH = r"C:\Program Files\QGIS 3.44.10\bin\geos_c.dll"
 
 GEOS_LIBRARY_PATH = r"C:\Program Files\PostgreSQL\16\bin\libgeos_c.dll"
 
@@ -38,15 +39,15 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", True)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
 
 INSTALLED_APPS = [
     "daphne",
     "channels",
-    "django.contrib.gis",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -57,18 +58,23 @@ INSTALLED_APPS = [
     "django_cotton",
     "django_htmx",
     "rest_framework",
-    "rest_framework_gis",
+    "rest_framework_simplejwt",
     "corsheaders",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
     "accounts",
-    "reports",
-    "stations",
+    "reports",  # Contains Incident, State, LGA models (geography + incidents)
+    "stations",  # Contains PoliceStation, AmotekunStation (facilities)
+    "geography",
+    "analytics",
     "dispatch",
     "notifications",
     "chat",
     "surveillance",
+    "traffic",
+    "mobile",
+    "dashboard",
 ]
 
 MIDDLEWARE = [
@@ -91,15 +97,19 @@ TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
-        "APP_DIRS": True,
         "OPTIONS": {
+            "loaders": [
+                "django_cotton.lib.Loader",
+                "django.template.loaders.filesystem.Loader",
+                "django.template.loaders.app_directories.Loader",
+            ],
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
         },
-    },
+    }
 ]
 
 ASGI_APPLICATION = "incident.asgi.application"
@@ -119,26 +129,15 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': os.environ.get('ENGINE'),
-#         'DB_NAME': os.environ.get('DB_NAME'),
-#         'HOST': os.environ.get('HOST'),
-#         'PORT': os.environ.get('PORT'),
-#         'USER': os.environ.get('USER'),
-#         'PASSWORD':os.environ.get('PASSWORD'),
-
-#     }
-# }
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "amotekun_db",
-        "HOST": "localhost",
-        "PORT": 5432,
-        "USER": "postgres",
-        "PASSWORD": "idrees",
+        "ENGINE": config("ENGINE"),
+        "NAME": config("DB_NAME", default="amotekun_db"),
+        "USER": config("DB_USER", default="postgres"),
+        "PASSWORD": config("PASSWORD", default=""),
+        "HOST": config("DB_HOST", default="localhost"),
+        "PORT": config("DB_PORT", default="5432"),
     }
 }
 
@@ -186,8 +185,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 LOGIN_REDIRECT_URL = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/'
 
-AUTH_USER_MODEL = 'accounts.User'
-
 # django-allauth settings
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -211,12 +208,33 @@ SOCIALACCOUNT_PROVIDERS = {}
 # REST Framework authentication
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ],
 }
+
+# JWT Settings
+from datetime import timedelta
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'UPDATE_LAST_LOGIN': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': config('SECRET_KEY'),
+    'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# Camera credential encryption
+CAMERA_ENCRYPTION_KEY = config('CAMERA_ENCRYPTION_KEY', default=config('SECRET_KEY'))
+
+# django-cotton Configuration
+COTTON_COMPONENT_DIR = "cotton"
+
+
 
 

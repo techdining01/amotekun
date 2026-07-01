@@ -197,12 +197,12 @@ function initNotifications() {
     return notificationClient;
 }
 
-// Auto-initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initNotifications);
-} else {
-    initNotifications();
-}
+// Auto-initialize on page load (only for authenticated users)
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.body.getAttribute('data-user-authenticated') !== null) {
+        initNotifications();
+    }
+});
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

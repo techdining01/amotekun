@@ -17,7 +17,7 @@
     <script src="{% static 'js/sound-alerts.js' %}"></script>
     <script src="{% static 'js/notifications.js' %}"></script>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50" data-user-authenticated="true">
     <div x-data="{ sidebarOpen: false }" class="min-h-screen">
         <!-- Mobile sidebar backdrop -->
         <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300" 

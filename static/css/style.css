@@ -17,9 +17,39 @@ body {
     height: 100vh;
 }
 
+/* Ensure map doesn't block top-right area */
+#map.leaflet-container {
+    z-index: 1 !important;
+}
+
 /* x-cloak for Alpine.js */
 [x-cloak] {
     display: none !important;
+}
+
+/* Ensure modals are hidden initially */
+.modal-hidden {
+    display: none !important;
+}
+
+/* Button visibility fix */
+.action-buttons {
+    pointer-events: auto !important;
+}
+
+.action-buttons button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+}
+
+/* Leaflet map container should not block buttons */
+.leaflet-map-pane {
+    z-index: 1 !important;
+}
+
+/* Ensure action buttons are always on top */
+.z-\[1000\] {
+    z-index: 1000 !important;
 }
 
 @keyframes pulse {

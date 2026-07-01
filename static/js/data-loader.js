@@ -10,7 +10,8 @@ class DataLoader {
         this.incidents = [];
         this.stations = {
             police: [],
-            amotekun: []
+            amotekun: [],
+            hospitals: []
         };
     }
 
@@ -50,7 +51,15 @@ class DataLoader {
     async loadPoliceStations() {
         try {
             const data = await stationAPI.getPoliceStations();
-            this.stations.police = data.features || data || [];
+            if (data && data.features) {
+                this.stations.police = data.features;
+            } else if (Array.isArray(data)) {
+                this.stations.police = data;
+            } else if (data && Array.isArray(data.results)) {
+                this.stations.police = data.results;
+            } else {
+                this.stations.police = [];
+            }
             return this.stations.police;
         } catch (error) {
             console.error('Failed to load police stations:', error);
@@ -61,7 +70,15 @@ class DataLoader {
     async loadAmotekunStations() {
         try {
             const data = await stationAPI.getAmotekunStations();
-            this.stations.amotekun = data.features || data || [];
+            if (data && data.features) {
+                this.stations.amotekun = data.features;
+            } else if (Array.isArray(data)) {
+                this.stations.amotekun = data;
+            } else if (data && Array.isArray(data.results)) {
+                this.stations.amotekun = data.results;
+            } else {
+                this.stations.amotekun = [];
+            }
             return this.stations.amotekun;
         } catch (error) {
             console.error('Failed to load Amotekun stations:', error);
@@ -69,10 +86,38 @@ class DataLoader {
         }
     }
 
+    async loadHospitals() {
+        try {
+            const data = await stationAPI.getHospitals();
+            if (data && data.features) {
+                this.stations.hospitals = data.features;
+            } else if (Array.isArray(data)) {
+                this.stations.hospitals = data;
+            } else if (data && Array.isArray(data.results)) {
+                this.stations.hospitals = data.results;
+            } else {
+                this.stations.hospitals = [];
+            }
+            return this.stations.hospitals;
+        } catch (error) {
+            console.error('Failed to load hospitals:', error);
+            return [];
+        }
+    }
+
     async loadIncidents() {
         try {
             const data = await incidentAPI.getAll();
-            this.incidents = data.features || data || [];
+            // Handle GeoJSON FeatureCollection or direct array
+            if (data && data.features) {
+                this.incidents = data.features;
+            } else if (Array.isArray(data)) {
+                this.incidents = data;
+            } else if (data && Array.isArray(data.results)) {
+                this.incidents = data.results;
+            } else {
+                this.incidents = [];
+            }
             return this.incidents;
         } catch (error) {
             console.error('Failed to load incidents:', error);
@@ -97,7 +142,8 @@ class DataLoader {
     getStations(type = 'all') {
         if (type === 'police') return this.stations.police;
         if (type === 'amotekun') return this.stations.amotekun;
-        return [...this.stations.police, ...this.stations.amotekun];
+        if (type === 'hospitals') return this.stations.hospitals;
+        return [...this.stations.police, ...this.stations.amotekun, ...this.stations.hospitals];
     }
 
     getLGAData() {

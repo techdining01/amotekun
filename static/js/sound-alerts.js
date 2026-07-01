@@ -9,8 +9,8 @@ class SoundAlerts {
             chat: new Audio('/static/audio/notification.mp3'),
             crime: new Audio('/static/audio/police_siren_sound_effect.mp3'),
             violence: new Audio('/static/audio/warning.mp3'),
-            fire: new Audio('/static/audio/emergency_warning_united_state.mp3'),
-            flood: new Audio('/static/audio/emergency_warning_united_state.mp3'),
+            fire: new Audio('/static/audio/emergency_warning_system_united_states.mp3'),
+            flood: new Audio('/static/audio/emergency_warning_system_united_states.mp3'),
             accident: new Audio('/static/audio/community_ambulance.mp3'),
         };
         

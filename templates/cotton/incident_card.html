@@ -1,0 +1,39 @@
+<div class="border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+    <div class="p-4">
+        <div class="flex justify-between items-start">
+            <div>
+                <h3 class="font-medium text-gray-900">{{ incident.title }}</h3>
+                <p class="text-sm text-gray-500 truncate">{{ incident.description }}</p>
+            </div>
+            <div class="text-right space-x-2">
+                <span class="px-2 py-1 text-xs font-medium rounded-full {% if incident.report_type == 'crime' %}bg-red-100 text-red-800{% elif incident.report_type == 'violence' %}bg-orange-100 text-orange-800{% elif incident.report_type == 'fire' %}bg-red-100 text-red-800{% elif incident.report_type == 'flood' %}bg-blue-100 text-blue-800{% elif incident.report_type == 'accident' %}bg-yellow-100 text-yellow-800{% else %}bg-gray-100 text-gray-800{% endif %}">
+                    {{ incident.get_report_type_display }}
+                </span>
+                {% if incident.status %}
+                <span class="px-2 py-1 text-xs font-medium rounded-full {% if incident.status == 'resolved' %}bg-green-100 text-green-800{% elif incident.status == 'in_progress' %}bg-blue-100 text-blue-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                    {{ incident.get_status_display }}
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mt-2 flex items-center text-sm text-gray-500">
+            {% if incident.location %}
+                <svg class="h-4 w-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                {{ incident.location }}
+            {% endif %}
+            <span class="mx-2">•</span>
+            <span class="whitespace-nowrap">{{ incident.created_at|timesince }} ago</span>
+        </div>
+    </div>
+    {% if actions %}
+    <div class="pt-3 border-t border-gray-200">
+        <div class="flex space-x-2">
+            {% for action in actions %}
+                {% cotton button variant="secondary" size="sm" %}{{ action.label }}{% endcotton %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>

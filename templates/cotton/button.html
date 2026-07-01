@@ -1,0 +1,6 @@
+<button type="{{ type|default:'button' }}"
+        class="btn btn-{{ variant|default:'primary' }} {{ size_class }} {{ class }}"
+        {% if disabled %}disabled{% endif %}
+        {% if href %}onclick="location.href='{{ href }}';"{% endif %}>
+    {{ content }}
+</button>

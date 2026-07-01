@@ -44,7 +44,7 @@ def incident_create_view(request):
 def get_location_from_point(point):
     """Determine state and LGA from coordinates"""
     try:
-        from .models import State, LGA
+        from .models import LGA
         lga = LGA.objects.filter(geometry__contains=point).first()
         if lga:
             state_name = lga.state.name if lga.state else 'Unknown'
@@ -93,7 +93,7 @@ class IncidentCreateAPIView(CreateAPIView):
     
     def get_location_from_point(self, point):
         try:
-            from .models import State, LGA
+            from .models import LGA
             lga = LGA.objects.filter(geometry__contains=point).first()
             if lga:
                 state_name = lga.state.name if lga.state else 'Unknown'

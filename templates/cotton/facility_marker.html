@@ -1,0 +1,13 @@
+<div class="max-w-xs">
+    <h3 class="font-semibold text-gray-900">{{ facility.name }}</h3>
+    <p class="text-sm text-gray-600">{{ facility.facility_type }}</p>
+    {% if facility.address %}
+    <p class="text-sm text-gray-500">{{ facility.address }}</p>
+    {% endif %}
+    {% if facility.phone %}
+    <p class="text-sm text-gray-500">Phone: {{ facility.phone }}</p>
+    {% endif %}
+    <div class="mt-2 flex space-x-2">
+        <a href="{% url 'facility-detail' facility.id %}" class="text-sm text-blue-600 hover:underline">Details</a>
+    </div>
+</div>

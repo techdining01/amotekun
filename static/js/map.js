@@ -14,7 +14,12 @@ class MapManager {
 
     init() {
         // Initialize map centered on Nigeria
-        this.map = L.map('map').setView([9.0820, 8.6753], 6);
+        this.map = L.map('map', {
+            zoomControl: false  // Move zoom control away from buttons area
+        }).setView([9.0820, 8.6753], 6);
+
+        // Add zoom control to top-left
+        L.control.zoom({ position: 'topleft' }).addTo(this.map);
 
         // Add OpenStreetMap tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -42,17 +47,43 @@ class MapManager {
 
     addIncidentMarker(incident) {
         if (!this.incidentLayer) return;
+        
+        // Handle both GeoJSON Feature format and flat object format
+        let lat, lng, reportType, title, description;
+        
+        if (incident.geometry && incident.geometry.coordinates) {
+            lng = incident.geometry.coordinates[0];
+            lat = incident.geometry.coordinates[1];
+            reportType = incident.properties?.report_type;
+            title = incident.properties?.title;
+            description = incident.properties?.description;
+        } else if (incident.latitude && incident.longitude) {
+            lat = incident.latitude;
+            lng = incident.longitude;
+            reportType = incident.report_type;
+            title = incident.title;
+            description = incident.description;
+        } else if (incident.geometry?.type === 'Point') {
+            lng = incident.geometry.coordinates[0];
+            lat = incident.geometry.coordinates[1];
+            reportType = incident.report_type;
+            title = incident.title;
+            description = incident.description;
+        } else {
+            console.warn('Invalid incident format:', incident);
+            return;
+        }
 
-        const marker = L.marker([incident.geometry.coordinates[1], incident.geometry.coordinates[0]], {
-            icon: this.getIncidentIcon(incident.properties.report_type)
+        const marker = L.marker([lat, lng], {
+            icon: this.getIncidentIcon(reportType)
         });
 
         marker.bindPopup(`
-            <div class="p-2">
-                <h3 class="font-bold">${incident.properties.title}</h3>
-                <p class="text-sm text-gray-600">${incident.properties.description}</p>
-                <span class="inline-block mt-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                    ${incident.properties.report_type}
+            <div style="padding: 8px;">
+                <h3 style="font-weight: bold; margin-bottom: 4px;">${title || 'Untitled'}</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 6px;">${description || ''}</p>
+                <span style="display: inline-block; font-size: 10px; background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px;">
+                    ${reportType || 'unknown'}
                 </span>
             </div>
         `);
@@ -62,16 +93,38 @@ class MapManager {
 
     addStationMarker(station, type = 'police') {
         if (!this.stationLayer) return;
+        
+        // Handle both GeoJSON Feature format and flat object format
+        let lat, lng, name, address, state, lga;
+        
+        if (station.geometry && station.geometry.coordinates) {
+            lng = station.geometry.coordinates[0];
+            lat = station.geometry.coordinates[1];
+            name = station.properties?.name;
+            address = station.properties?.address;
+            state = station.properties?.state;
+            lga = station.properties?.lga;
+        } else if (station.latitude && station.longitude) {
+            lat = station.latitude;
+            lng = station.longitude;
+            name = station.name;
+            address = station.address;
+            state = station.state;
+            lga = station.lga;
+        } else {
+            console.warn('Invalid station format:', station);
+            return;
+        }
 
-        const marker = L.marker([station.geometry.coordinates[1], station.geometry.coordinates[0]], {
+        const marker = L.marker([lat, lng], {
             icon: this.getStationIcon(type)
         });
 
         marker.bindPopup(`
-            <div class="p-2">
-                <h3 class="font-bold">${station.properties.name}</h3>
-                <p class="text-sm text-gray-600">${station.properties.address}</p>
-                <p class="text-sm text-gray-500">${station.properties.state}, ${station.properties.lga}</p>
+            <div style="padding: 8px;">
+                <h3 style="font-weight: bold; margin-bottom: 4px;">${name || 'Unknown'}</h3>
+                <p style="font-size: 12px; color: #666; margin-bottom: 4px;">${address || ''}</p>
+                <p style="font-size: 11px; color: #999;">${state || ''}, ${lga || ''}</p>
             </div>
         `);
 
@@ -98,7 +151,8 @@ class MapManager {
     getStationIcon(type) {
         const colors = {
             police: '#1d4ed8',
-            amotekun: '#15803d'
+            amotekun: '#15803d',
+            hospital: '#dc2626'
         };
 
         return L.divIcon({

@@ -16,6 +16,17 @@ class DispatchViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Set dispatcher on create"""
         serializer.save(assigned_dispatcher=self.request.user)
+
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        if request.htmx:
+            from django.http import HttpResponse
+            from django.utils.encoding import json_script
+            return HttpResponse(
+                status=204,
+                headers={'HX-Trigger': 'dispatchAdded'}
+            )
+        return response
     
     @action(detail=True, methods=['post'])
     def transition(self, request, pk=None):

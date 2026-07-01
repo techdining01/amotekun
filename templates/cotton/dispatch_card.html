@@ -1,0 +1,42 @@
+<div class="border border-gray-200 rounded-lg shadow-sm">
+    <div class="px-4 py-3 sm:px-6">
+        <div class="flex items-center justify-between">
+            <div class="flex-1 min-w-0">
+                <h2 class="text-lg font-medium title-font text-gray-900">Dispatch {{ dispatch.id }}</h2>
+                <p class="mt-1 text-sm text-gray-500">{{ dispatch.status }}</p>
+            </div>
+            <div class="flex-shrink-0">
+                {% if dispatch.priority == 'high' %}
+                <span class="px-2 py-1 text-xs font-medium bg-red-100 text-red-800 rounded-full">High Priority</span>
+                {% elif dispatch.priority == 'low' %}
+                <span class="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">Low Priority</span>
+                {% else %}
+                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Normal</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="border-t border-gray-200 px-4 py-3 sm:px-6">
+        <div class="space-y-2 text-sm text-gray-700">
+            <div class="flex">
+                <span class="w-20 inline-block font-medium">Incident:</span>
+                <span>{{ dispatch.incident.title }}</span>
+            </div>
+            <div class="flex">
+                <span class="w-20 inline-block font-medium">Officer:</span>
+                <span>{{ dispatch.officer.get_full_name|default:dispatch.officer.username }}</span>
+            </div>
+            <div class="flex">
+                <span class="w-20 inline-block font-medium">Assigned:</span>
+                <span>{{ dispatch.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+        </div>
+    </div>
+    {% if actions %}
+    <div class="border-t border-gray-200 px-4 py-3 sm:px-6 text-right">
+        {% for action in actions %}
+            {% cotton button variant="secondary" size="sm" %}{{ action.label }}{% endcotton %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>

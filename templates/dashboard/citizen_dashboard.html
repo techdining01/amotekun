@@ -30,33 +30,27 @@
 
 {% block content %}
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">My Reports</h3>
-        <p class="text-3xl font-bold text-blue-600">0</p>
-        <p class="text-sm text-gray-500">Total incidents reported</p>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Nearby Incidents</h3>
-        <p class="text-3xl font-bold text-orange-600">0</p>
-        <p class="text-sm text-gray-500">In your area</p>
-    </div>
-    <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-lg font-semibold text-gray-800 mb-2">Nearby Stations</h3>
-        <p class="text-3xl font-bold text-green-600">0</p>
-        <p class="text-sm text-gray-500">Police & Amotekun</p>
-    </div>
+    {% cotton statistics_card title="My Reports" value="0" value_color="text-blue-600" subtitle="Total incidents reported" %}{% endcotton %}
+    {% cotton statistics_card title="Nearby Incidents" value="0" value_color="text-orange-600" subtitle="In your area" %}{% endcotton %}
+    {% cotton statistics_card title="Nearby Stations" value="0" value_color="text-green-600" subtitle="Police & Amotekun" %}{% endcotton %}
 </div>
 
-<div class="bg-white rounded-lg shadow p-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Report New Incident</h2>
-    <p class="text-gray-600 mb-4">Click the button below to report an incident on the map.</p>
-    <a href="/" class="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-        Go to Map
-    </a>
-</div>
+{% cotton card %}
+    {% cotton:slot "header" %}
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Report New Incident</h2>
+    {% endcotton:slot %}
+    {% cotton:slot "body" %}
+        <p class="text-gray-600 mb-4">Click the button below to report an incident on the map.</p>
+        {% cotton button variant="primary" %}Go to Map{% endcotton %}
+    {% endcotton:slot %}
+{% endcotton %}
 
-<div class="bg-white rounded-lg shadow p-6 mt-6">
-    <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-    <p class="text-gray-500">No recent activity to display.</p>
-</div>
+{% cotton card %}
+    {% cotton:slot "header" %}
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
+    {% endcotton:slot %}
+    {% cotton:slot "body" %}
+        <p class="text-gray-500">No recent activity to display.</p>
+    {% endcotton:slot %}
+{% endcotton %}
 {% endblock %}
