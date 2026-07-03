@@ -33,7 +33,7 @@
     </div>
 
     <!-- Login link for role-based access -->
-    <div style="position: fixed; top: 16px; left: 16px; z-index: 9999;">
+    <div style="position: fixed; top: 16px; left: 40px; z-index: 9999;">
         {% if user.is_authenticated %}
             <a href="{% url 'home' %}" style="padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 6px; text-decoration: none; font-size: 14px; color: #374151;">{{ user.username }} ({{ user.get_role_display }})</a>
             <a href="{% url 'account_logout' %}" style="padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 6px; text-decoration: none; font-size: 14px; color: #dc2626; margin-left: 8px;">Logout</a>

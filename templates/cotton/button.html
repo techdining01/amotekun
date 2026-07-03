@@ -1,6 +1,18 @@
-<button type="{{ type|default:'button' }}"
-        class="btn btn-{{ variant|default:'primary' }} {{ size_class }} {{ class }}"
-        {% if disabled %}disabled{% endif %}
-        {% if href %}onclick="location.href='{{ href }}';"{% endif %}>
-    {{ content }}
-</button>
+{% with base_classes="inline-flex w-full items-center justify-center rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950" %}
+    {% if variant == 'secondary' %}
+        {% with variant_classes="bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700 focus:ring-slate-500" %}
+        {% endwith %}
+    {% elif variant == 'destructive' %}
+        {% with variant_classes="bg-rose-500 text-white hover:bg-rose-400 focus:ring-rose-400" %}
+        {% endwith %}
+    {% else %}
+        {% with variant_classes="bg-sky-500 text-white hover:bg-sky-400 focus:ring-sky-400" %}
+        {% endwith %}
+    {% endif %}
+        <button type="{{ type|default:'button' }}"
+                class="{{ base_classes }} {{ variant_classes }} {{ class }}"
+                {% if disabled %}disabled{% endif %}
+                {% if href %}onclick="location.href='{{ href }}';"{% endif %}>
+            {{ content }}
+        </button>
+{% endwith %}

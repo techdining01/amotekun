@@ -354,7 +354,7 @@ Django Dashboard (Presentation)
 | analytics | Analytics and reporting | 🔄 In Progress |
 | reports | Audit and reports | 📝 Planned |
 | audit | Audit logging | 📝 Planned |
-| mobile | Mobile APIs (JWT, push, media) | 🔄 In Progress |
+| mobile | Mobile APIs (JWT, push, media) | ✅ Complete |
 
 ## Locked Roadmap
 
@@ -371,9 +371,142 @@ Django Dashboard (Presentation)
 | Phase 8 | Real-Time Alerts | ✅ Complete |
 | **Realtime/Comms Increment** | Chat, Sound, CCTV | ✅ Complete |
 | Phase 9 | Traffic Intelligence | 🔄 In Progress |
-| Phase 10 | Mobile APIs | 🔄 In Progress |
-| Phase 11 | AI Prediction | 📝 Planned |
+| Phase 10 | Mobile APIs | ✅ Complete |
+| Phase 11 | AI Prediction | 🔄 In Progress |
 | Phase 12 | CCTV Streaming & Analytics | 📝 Planned |
+
+> Phase 10 is now complete. The project is moving into Phase 11: AI Prediction, with initial architecture and implementation planning underway.
+
+## Traffic Intelligence Strategy (Locked Proposal)
+
+### Vision
+
+- Build a **Traffic Intelligence Platform**, not a traffic provider.
+- Use external providers for raw observations while owning the intelligence layer.
+- Enrich traffic with local incidents, CCTV events, dispatch state, and spatial context.
+- Store historical snapshots so the platform learns from its own data.
+
+### Architecture Overview
+
+- `traffic` app collects provider feeds through a **Traffic Provider Adapter**.
+- Collected data is normalized and stored in **PostgreSQL + PostGIS** as snapshots.
+- A second layer enriches each snapshot with:
+  - local incident reports
+  - CCTV detections and camera alerts
+  - nearby emergency facilities and routes
+  - dispatch activity and response status
+- Predictive and recommendation services run on top of the historical dataset.
+
+### Traffic Provider Adapter
+
+Keep the provider abstraction separate from business logic.
+
+Benefits:
+- Switch traffic sources without rewriting core logic.
+- Add mock providers for testing.
+- Blend multiple providers later.
+- Support future government or local feeds.
+
+Example adapters:
+- `TomTomTrafficProvider`
+- `HereTrafficProvider`
+- `MockTrafficProvider`
+
+### Collection Strategy
+
+- Use **Celery Beat** for recurring collection every 15 minutes.
+- Provide a **management command** for manual backfill or debugging.
+- Persist every snapshot; do not overwrite historical data.
+
+Task flow:
+- Celery Beat → collect_traffic task → provider adapter → TrafficSnapshot model → enrichment
+
+### TrafficSnapshot Model
+
+Store each observation as a record rather than replacing it.
+
+Example fields:
+- `road_name`
+- `timestamp`
+- `average_speed`
+- `travel_time`
+- `congestion_level`
+- `provider`
+- `geometry`
+- `incident_count`
+- `camera_count`
+- `weather_condition` (future)
+
+### Why This Approach
+
+- External providers give current state.
+- Your system owns the history.
+- The result is proprietary intelligence built from:
+  - traffic flow
+  - incidents
+  - CCTV analytics
+  - dispatch activity
+
+### Phase 9 Deliverables
+
+- traffic ingestion service
+- provider adapter pattern
+- historical traffic snapshot storage
+- enriched traffic dataset using local incident and CCTV metadata
+- dashboard/mobile API endpoints for congestion and routing insights
+- proof of concept route recommendation and alerting
+
+### Phase 9 Status
+
+- `traffic` app exists and is wired into API routes.
+- traffic intelligence remains **in progress** while the platform design is locked.
+- Mobile APIs are **complete** and available for mobile integration.
+- AI Prediction is now the next active phase.
+
+## Phase Status Summary
+
+**Finished phases:**
+- Phase 1: Foundation
+- Phase 2: GIS Data
+- Phase 3: Incident Reporting
+- Phase 4: Emergency Facilities
+- Phase 7: Dispatch Management
+- Phase 8: Real-Time Alerts
+- Phase 10: Mobile APIs
+
+**In progress:**
+- UI Modernization: django-cotton, HTMX, Mobile-First
+- Phase 5: Spatial Queries
+- Phase 6: Hotspot Engine
+- Phase 9: Traffic Intelligence
+- Phase 11: AI Prediction
+
+**Planned:**
+- Phase 12: CCTV Streaming & Analytics
+
+---
+
+## Phase 11: AI Prediction
+
+**Objective:** Introduce predictive analytics and model-driven insights for incident management, traffic intelligence, and surveillance.
+
+**Focus Areas:**
+- Incident classification and hotspot prediction
+- Traffic pattern prediction and alerting
+- Surveillance object detection pipelines
+- AI-ready architecture for future YOLO/PyTorch integration
+
+**Initial implementation plan:**
+1. Catalog existing data sources in `reports`, `traffic`, `analytics`, and `surveillance`.
+2. Define backend entry points for prediction services and model inference hooks.
+3. Add prototype prediction API endpoints in `analytics` or `surveillance`.
+4. Build asynchronous processing and task support for model workloads.
+5. Document future camera feed and object detection pipelines.
+
+**Deliverables:**
+- documented Phase 11 architecture and data flow
+- AI prediction service design in the codebase
+- endpoint and model integration plan for dashboards and real-time alerts
 
 ## UI Modernization Phase
 
@@ -436,7 +569,7 @@ Django Dashboard (Presentation)
 - Role-based access control (RBAC)
 
 ### Data Encryption
-- Camera credentials encrypted at rest using `django-encrypted-fields`
+- Camera credentials encrypted at rest using `encryption`
 - HTTPS/TLS for all communications
 - Database encryption at rest (PostgreSQL)
 
@@ -584,7 +717,6 @@ Database (CameraAlert.snapshot_path)
 
 **Purpose:** Detect objects and events in video streams.
 
-**Technology Stack:**
 - **YOLOv8** - Object detection (fast, accurate)
 - **OpenCV** - Image preprocessing (if needed)
 - **TensorRT** - GPU acceleration (optional)

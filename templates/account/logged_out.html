@@ -1,17 +1,13 @@
 {% extends "account/base_account.html" %}
 
-{% block title %}Logout | Amotekun{% endblock %}
-{% block heading %}Confirm logout{% endblock %}
-{% block subheading %}Submit to end your current session securely.{% endblock %}
+{% block title %}Logged Out | Amotekun{% endblock %}
+{% block heading %}You're logged out{% endblock %}
+{% block subheading %}Thank you for using Amotekun. Come back anytime.{% endblock %}
 
 {% block content %}
-    {% cotton auth_card title="Confirm logout" subtitle="Please confirm to end your session." %}
+    {% cotton auth_card title="Signed out" subtitle="You are now safely logged out." %}
         <div class="px-8 pb-8 sm:px-10 text-center space-y-6">
-            <p class="text-slate-300">Click below to sign out of your account.</p>
-            <form method="post" class="space-y-4">
-                {% csrf_token %}
-                {% cotton button variant="destructive" type="submit" class="w-full py-3 text-sm font-semibold" %}Log out{% endcotton %}
-            </form>
+            <p class="text-slate-300">Your session has ended successfully.</p>
             <div class="grid gap-3 sm:grid-cols-2">
                 <a href="{% url 'account_login' %}" class="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400">Log in again</a>
                 <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-100 shadow-lg shadow-slate-950/20 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500">Sign up</a>

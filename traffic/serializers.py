@@ -1,40 +1,83 @@
 from rest_framework import serializers
-from .models import TrafficIncident, TrafficFlow, Road, TrafficCamera, TrafficAlert
+from .models import (
+    TrafficIncident,
+    TrafficFlow,
+    Road,
+    TrafficCamera,
+    TrafficAlert,
+    TrafficSnapshot,
+)
 
 
 class TrafficIncidentSerializer(serializers.ModelSerializer):
-    reported_by_name = serializers.CharField(source='reported_by.username', read_only=True)
-    resolved_by_name = serializers.CharField(source='resolved_by.username', read_only=True)
-    
+    reported_by_name = serializers.CharField(
+        source="reported_by.username", read_only=True
+    )
+    resolved_by_name = serializers.CharField(
+        source="resolved_by.username", read_only=True
+    )
+
     class Meta:
         model = TrafficIncident
-        fields = ['id', 'incident_type', 'severity', 'status', 'location', 'address', 
-                  'road_name', 'description', 'affected_lanes', 'estimated_duration',
-                  'reported_by', 'reported_by_name', 'reported_at', 'resolved_at', 
-                  'resolved_by', 'resolved_by_name']
-        read_only_fields = ['reported_at', 'resolved_at']
+        fields = [
+            "id",
+            "incident_type",
+            "severity",
+            "status",
+            "location",
+            "address",
+            "road_name",
+            "description",
+            "affected_lanes",
+            "estimated_duration",
+            "reported_by",
+            "reported_by_name",
+            "reported_at",
+            "resolved_at",
+            "resolved_by",
+            "resolved_by_name",
+        ]
+        read_only_fields = ["reported_at", "resolved_at"]
 
 
 class TrafficFlowSerializer(serializers.ModelSerializer):
-    road_name = serializers.CharField(source='road.name', read_only=True)
-    
+    road_name = serializers.CharField(source="road.name", read_only=True)
+
     class Meta:
         model = TrafficFlow
-        fields = ['id', 'road', 'road_name', 'vehicle_count', 'average_speed', 
-                  'congestion_level', 'measured_at']
-        read_only_fields = ['measured_at']
+        fields = [
+            "id",
+            "road",
+            "road_name",
+            "vehicle_count",
+            "average_speed",
+            "congestion_level",
+            "measured_at",
+        ]
+        read_only_fields = ["measured_at"]
 
 
 class RoadSerializer(serializers.ModelSerializer):
     current_flow = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = Road
-        fields = ['id', 'name', 'road_type', 'geometry', 'speed_limit', 'lanes', 
-                  'capacity', 'is_monitored', 'last_flow_update', 'current_flow',
-                  'created_at', 'updated_at']
-        read_only_fields = ['created_at', 'updated_at']
-    
+        fields = [
+            "id",
+            "name",
+            "road_type",
+            "geometry",
+            "speed_limit",
+            "lanes",
+            "capacity",
+            "is_monitored",
+            "last_flow_update",
+            "current_flow",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["created_at", "updated_at"]
+
     def get_current_flow(self, obj):
         flow = obj.get_current_flow()
         if flow:
@@ -42,25 +85,74 @@ class RoadSerializer(serializers.ModelSerializer):
         return None
 
 
+class TrafficSnapshotSerializer(serializers.ModelSerializer):
+    road_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = TrafficSnapshot
+        fields = [
+            "id",
+            "provider",
+            "road",
+            "road_name",
+            "timestamp",
+            "average_speed",
+            "travel_time",
+            "congestion_level",
+            "geometry",
+            "incident_count",
+            "camera_count",
+            "weather_condition",
+            "raw_data",
+            "created_at",
+        ]
+        read_only_fields = ["created_at"]
+
+
 class TrafficCameraSerializer(serializers.ModelSerializer):
-    camera_name = serializers.CharField(source='camera.name', read_only=True)
-    camera_status = serializers.CharField(source='camera.status', read_only=True)
-    road_name = serializers.CharField(source='monitored_road.name', read_only=True)
-    
+    camera_name = serializers.CharField(source="camera.name", read_only=True)
+    camera_status = serializers.CharField(source="camera.status", read_only=True)
+    road_name = serializers.CharField(source="monitored_road.name", read_only=True)
+
     class Meta:
         model = TrafficCamera
-        fields = ['id', 'camera', 'camera_name', 'camera_status', 'monitored_road', 
-                  'road_name', 'direction', 'vehicle_detection_enabled', 
-                  'speed_detection_enabled', 'daily_vehicle_count', 'last_count_update']
+        fields = [
+            "id",
+            "camera",
+            "camera_name",
+            "camera_status",
+            "monitored_road",
+            "road_name",
+            "direction",
+            "vehicle_detection_enabled",
+            "speed_detection_enabled",
+            "daily_vehicle_count",
+            "last_count_update",
+        ]
 
 
 class TrafficAlertSerializer(serializers.ModelSerializer):
-    road_name = serializers.CharField(source='road.name', read_only=True)
-    acknowledged_by_name = serializers.CharField(source='acknowledged_by.username', read_only=True)
-    
+    road_name = serializers.CharField(source="road.name", read_only=True)
+    acknowledged_by_name = serializers.CharField(
+        source="acknowledged_by.username", read_only=True
+    )
+
     class Meta:
         model = TrafficAlert
-        fields = ['id', 'alert_type', 'severity', 'location', 'road', 'road_name', 
-                  'message', 'data', 'acknowledged', 'acknowledged_by', 
-                  'acknowledged_by_name', 'acknowledged_at', 'created_at', 'resolved_at']
-        read_only_fields = ['created_at', 'resolved_at', 'acknowledged_at']
+        fields = [
+            "id",
+            "alert_type",
+            "severity",
+            "location",
+            "road",
+            "road_name",
+            "message",
+            "data",
+            "acknowledged",
+            "acknowledged_by",
+            "acknowledged_by_name",
+            "acknowledged_at",
+            "created_at",
+            "resolved_at",
+        ]
+        read_only_fields = ["created_at", "resolved_at", "acknowledged_at"]
