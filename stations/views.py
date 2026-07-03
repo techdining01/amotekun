@@ -1,10 +1,13 @@
+from django.contrib.gis.geos import Point
 from django.db import connection
+from django.http import JsonResponse
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
-    
-from .models import PoliceStation, AmotekunStation, Hospital
-from .serializers import PoliceStationSerializer, AmotekunStationSerializer, HospitalSerializer
+from rest_framework import status
+
+from .models import PoliceStation, AmotekunStation
+from .serializers import PoliceStationSerializer, AmotekunStationSerializer
 
 
 def _fast_knn_station(table, lon, lat, limit=1):
@@ -88,28 +91,6 @@ class RouteByPgRoutingAPIView(APIView):
             )
 
 
-class PoliceStationListAPIView(APIView):
-    """GET /api/stations/police/ - list all police stations"""
+from django.shortcuts import render
 
-    def get(self, request):
-        stations = PoliceStation.objects.all()
-        serializer = PoliceStationSerializer(stations, many=True)
-        return Response(serializer.data)
-
-
-class AmotekunStationListAPIView(APIView):
-    """GET /api/stations/amotekun/ - list all amotekun stations"""
-
-    def get(self, request):
-        stations = AmotekunStation.objects.all()
-        serializer = AmotekunStationSerializer(stations, many=True)
-        return Response(serializer.data)
-
-
-class HospitalListAPIView(APIView):
-    """GET /api/stations/hospitals/ - list all hospitals"""
-
-    def get(self, request):
-        hospitals = Hospital.objects.all()
-        serializer = HospitalSerializer(hospitals, many=True)
-        return Response(serializer.data)
+# Create your views here.
