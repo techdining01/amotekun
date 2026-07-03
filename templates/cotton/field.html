@@ -1,0 +1,15 @@
+<div class="space-y-1.5">
+    {% if label %}
+        <label for="{{ id }}" class="block text-xs font-semibold tracking-wider uppercase text-slate-400">
+            {{ label }}
+        </label>
+    {% endif %}
+    
+    <div class="[&>input]:w-full [&>input]:bg-transparent [&>input]:border-0 [&>input]:p-0 [&>input]:text-white [&>input]:placeholder-slate-600 [&>input]:focus:ring-0 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
+        {{ slot }}
+    </div>
+
+    {% if errors %}
+        <p class="text-xs text-rose-400 font-medium">{{ errors }}</p>
+    {% endif %}
+</div>

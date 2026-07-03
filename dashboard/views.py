@@ -10,15 +10,15 @@ def role_redirect(request):
     """
     user = request.user
     role = user.role
-    
+
     role_urls = {
-        'CITIZEN': 'citizen-dashboard',
-        'OFFICER': 'officer-dashboard',
-        'DISPATCHER': 'dispatcher-dashboard',
-        'ADMIN': 'admin-dashboard',
+        "CITIZEN": "citizen-dashboard",
+        "OFFICER": "officer-dashboard",
+        "DISPATCHER": "dispatcher-dashboard",
+        "ADMIN": "admin-dashboard",
     }
-    
-    dashboard_url = role_urls.get(role, 'citizen-dashboard')
+
+    dashboard_url = role_urls.get(role, "citizen-dashboard")
     return redirect(dashboard_url)
 
 
@@ -29,22 +29,34 @@ def dashboard_view(request):
     """
     user = request.user
     role = user.role
-    
+
     template_map = {
-        'CITIZEN': 'dashboard/citizen_dashboard.html',
-        'OFFICER': 'dashboard/officer_dashboard.html',
-        'DISPATCHER': 'dashboard/dispatcher_dashboard.html',
-        'ADMIN': 'dashboard/admin_dashboard.html',
+        "CITIZEN": "dashboard/citizen_dashboard.html",
+        "OFFICER": "dashboard/officer_dashboard.html",
+        "DISPATCHER": "dashboard/dispatcher_dashboard.html",
+        "ADMIN": "dashboard/admin_dashboard.html",
     }
-    
-    template = template_map.get(role, 'dashboard/citizen_dashboard.html')
-    
+
+    template = template_map.get(role, "dashboard/citizen_dashboard.html")
+
     context = {
-        'user': user,
-        'role': role,
-        'role_display': user.get_role_display(),
+        "user": user,
+        "role": role,
+        "role_display": user.get_role_display(),
     }
-    
+
     return render(request, template, context)
 
 
+@login_required
+def camera_grid_view(request):
+    """
+    Render a dedicated camera grid page for full 24-camera layout.
+    """
+    context = {
+        "user": request.user,
+        "role": request.user.role,
+        "role_display": request.user.get_role_display(),
+        "grid_page": True,
+    }
+    return render(request, "dashboard/camera_grid.html", context)

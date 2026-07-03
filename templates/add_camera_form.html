@@ -1,0 +1,81 @@
+{% load static %}
+<!-- Container and Hidden Input -->
+<div id="{{ widget.name }}-map" style="width: 100%; height: 450px; border: 1px solid #ccc; margin-bottom: 10px;"></div>
+<input type="hidden" name="{{ widget.name }}" id="{{ widget.name }}" value="{{ widget.value|default:'' }}" />
+
+<!-- Core Leaflet Dependencies -->
+<link rel="stylesheet" href="https://unpkg.com" />
+<script src="https://unpkg.com"></script>
+
+<!-- Leaflet GeoSearch Plugin Assets -->
+<link rel="stylesheet" href="https://unpkg.com" />
+<script src="https://unpkg.com"></script>
+
+<script>
+(function() {
+    var mapDiv = document.getElementById('{{ widget.name }}-map');
+    if (!mapDiv) return;
+    
+    // Default center explicitly set to Nigeria [lat, lng]
+    var map = L.map(mapDiv).setView([9.082, 8.675], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+    
+    var marker = null;
+    var input = document.getElementById('{{ widget.name }}');
+    
+    // 1. Add Nigeria-only search parameters
+    const provider = new window.GeoSearch.OpenStreetMapProvider({
+        params: {
+            countrycodes: 'ng', // Strictly filters search results to Nigeria
+            limit: 6,           // Limits the total dropdown options
+        },
+    });
+
+    // 2. Add the Search Bar UI Component with bounded settings
+    const searchControl = new window.GeoSearch.GeoSearchControl({
+        provider: provider,
+        style: 'bar',
+        showMarker: false,       // Prevent the library from dropping unmanaged pins
+        autoClose: true,        // Closes dropdown automatically when location is chosen
+        keepResult: true,       // Keeps search text visible in the bar after selection
+    });
+    map.addControl(searchControl);
+
+    // Initialize marker if data already exists in database
+    if (input && input.value) {
+        try {
+            var data = JSON.parse(input.value);
+            if (data.type === 'Point' && data.coordinates) {
+                var latlng = [data.coordinates[1], data.coordinates[0]];
+                map.setView(latlng, 14);
+                marker = L.marker(latlng).addTo(map);
+            }
+        } catch(e) {}
+    }
+    
+    // Update coordinates helper function
+    function updateLocation(latlng) {
+        if (marker) map.removeLayer(marker);
+        marker = L.marker(latlng).addTo(map);
+        
+        var geojson = {
+            type: 'Point',
+            coordinates: [latlng.lng, latlng.lat]
+        };
+        input.value = JSON.stringify(geojson);
+    }
+
+    // Capture clicks on the map surface
+    map.on('click', function(e) {
+        updateLocation(e.latlng);
+    });
+
+    // Capture results from the search bar selection
+    map.on('geosearch/showlocation', function(e) {
+        var latlng = { lat: e.location.y, lng: e.location.x };
+        updateLocation(latlng);
+    });
+})();
+</script>

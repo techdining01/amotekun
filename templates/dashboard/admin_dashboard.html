@@ -57,10 +57,10 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     {% cotton card %}
-        {% cotton:slot "header" %}
+        {% cotton:slot header %}
             <h2 class="text-xl font-semibold text-gray-800 mb-4">User Distribution by Role</h2>
         {% endcotton:slot %}
-        {% cotton:slot "body" %}
+        {% cotton:slot body %}
             <div class="space-y-4">
                 <div class="flex justify-between items-center">
                     <span class="text-gray-600">Citizens</span>
@@ -82,10 +82,10 @@
         {% endcotton:slot %}
     {% endcotton %}
     {% cotton card %}
-        {% cotton:slot "header" %}
+        {% cotton:slot header %}
             <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
         {% endcotton:slot %}
-        {% cotton:slot "body" %}
+        {% cotton:slot body %}
             <p class="text-gray-500">No recent activity to display.</p>
         {% endcotton:slot %}
     {% endcotton %}

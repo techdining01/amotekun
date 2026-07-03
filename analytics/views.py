@@ -8,6 +8,11 @@ from django.contrib.gis.db.models.functions import Centroid
 from .models import Hotspot, HotspotAnalysis
 from .serializers import HotspotSerializer, HotspotAnalysisSerializer
 from reports.models import Incident
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import status
+from rest_framework.response import Response
+from .prediction import PredictionService
 
 
 class HotspotViewSet(viewsets.ReadOnlyModelViewSet):
@@ -15,19 +20,21 @@ class HotspotViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = HotspotSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=["get"])
     def crime(self, request):
         """Get top crime hotspots"""
-        hotspots = Hotspot.objects.filter(hotspot_type='crime').order_by('-intensity_score')[:50]
+        hotspots = Hotspot.objects.filter(hotspot_type="crime").order_by(
+            "-intensity_score"
+        )[:50]
         return Response(self.get_serializer(hotspots, many=True).data)
 
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=["post"])
     def generate(self, request):
         """Generate hotspots from incidents using grid-based clustering"""
-        lat = request.data.get('lat')
-        lng = request.data.get('lng')
-        radius_km = float(request.data.get('radius', 10))
-        grid_size = float(request.data.get('grid_size', 0.01))
+        lat = request.data.get("lat")
+        lng = request.data.get("lng")
+        radius_km = float(request.data.get("radius", 10))
+        grid_size = float(request.data.get("grid_size", 0.01))
 
         if lat and lng:
             point = Point(float(lng), float(lat), srid=4326)
@@ -42,38 +49,71 @@ class HotspotViewSet(viewsets.ReadOnlyModelViewSet):
             from django.contrib.gis.db.models.functions import GeoHash
             from collections import defaultdict
             import math
-            
+
             grid_counts = defaultdict(int)
             for incident in incidents:
                 lat_grid = int(incident.geometry.y / grid_size)
                 lng_grid = int(incident.geometry.x / grid_size)
                 grid_counts[(lat_grid, lng_grid)] += 1
 
-            for (lat_grid, lng_grid), count in sorted(grid_counts.items(), key=lambda x: -x[1])[:100]:
+            for (lat_grid, lng_grid), count in sorted(
+                grid_counts.items(), key=lambda x: -x[1]
+            )[:100]:
                 center_lat = (lat_grid + 0.5) * grid_size
                 center_lng = (lng_grid + 0.5) * grid_size
                 center_point = Point(center_lng, center_lat, srid=4326)
-                
+
                 intensity = min(1.0, count / 10.0)
                 hotspot = Hotspot.objects.create(
                     location=center_point,
-                    hotspot_type='crime',
+                    hotspot_type="crime",
                     intensity_score=intensity,
-                    incident_count=count
+                    incident_count=count,
                 )
                 hotspots.append(hotspot)
 
         HotspotAnalysis.objects.create(
-            analysis_type='crime_hotspot',
-            parameters={'radius_km': radius_km, 'grid_size': grid_size},
-            hotspot_bounds=incidents[0].geometry.convex_hull if incidents.exists() else None,
-            results={'hotspot_count': len(hotspots)}
+            analysis_type="crime_hotspot",
+            parameters={"radius_km": radius_km, "grid_size": grid_size},
+            hotspot_bounds=incidents[0].geometry.convex_hull
+            if incidents.exists()
+            else None,
+            results={"hotspot_count": len(hotspots)},
         )
 
-        return Response({'generated': len(hotspots)})
+        return Response({"generated": len(hotspots)})
 
 
 class HotspotAnalysisViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = HotspotAnalysis.objects.all()
     serializer_class = HotspotAnalysisSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+
+class PredictTrafficAPIView(APIView):
+    """Prototype traffic prediction endpoint (Phase 11 scaffold).
+
+    Accepts POST JSON with `lat`, `lng`, and optional `snapshot` payload.
+    Returns a simple prediction dict with `congestion_probability` (0-1).
+    """
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def post(self, request):
+        lat = request.data.get("lat")
+        lng = request.data.get("lng")
+        snapshot = request.data.get("snapshot")
+
+        if lat is None or lng is None:
+            return Response(
+                {"detail": "lat and lng required"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            svc = PredictionService()
+            result = svc.predict(float(lat), float(lng), snapshot=snapshot)
+            return Response(result)
+        except Exception as exc:
+            return Response(
+                {"detail": str(exc)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

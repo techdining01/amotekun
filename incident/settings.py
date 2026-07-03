@@ -41,7 +41,6 @@ DEBUG = os.environ.get("DEBUG", True)
 
 ALLOWED_HOSTS = ["*"]
 
-AUTH_USER_MODEL = "accounts.User"
 
 # Application definition
 
@@ -49,6 +48,8 @@ INSTALLED_APPS = [
     "daphne",
     "channels",
     "django.contrib.admin",
+    "django.contrib.gis",  # Required for GIS fields
+    "django.forms",  # Required for TemplatesSetting
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -63,7 +64,7 @@ INSTALLED_APPS = [
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
-    "accounts",
+    "leaflet",
     "reports",  # Contains Incident, State, LGA models (geography + incidents)
     "stations",  # Contains PoliceStation, AmotekunStation (facilities)
     "geography",
@@ -90,19 +91,40 @@ MIDDLEWARE = [
     "allauth.account.middleware.AccountMiddleware",
 ]
 
+# django-allauth settings
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+SITE_ID = 1
+
+# # allauth account settings
+SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
+LOGIN_METHODS = {"email", "username"}
+EMAIL_VERIFICATION = "mandatory"
+SESSION_REMEMBER = True
+ADAPTER = "accounts.adapter.CustomAccountAdapter"
+
+# allauth social account settings (for future OAuth integration)
+SOCIALACCOUNT_ADAPTER = "accounts.adapter.CustomSocialAccountAdapter"
+SOCIALACCOUNT_QUERY_EMAIL = True
+SOCIALACCOUNT_PROVIDERS = {}
+
+
+# Tell Django to look in your app templates AND system fallback folders
+FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
+
 ROOT_URLCONF = "incident.urls"
 
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
         "OPTIONS": {
-            "loaders": [
-                "django_cotton.lib.Loader",
-                "django.template.loaders.filesystem.Loader",
-                "django.template.loaders.app_directories.Loader",
-            ],
             "context_processors": [
+                "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
@@ -202,27 +224,13 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 900.0,
         "options": {"queue": "traffic"},
     },
+    "camera-health-check-every-5-minutes": {
+        "task": "surveillance.tasks.camera_health_check",
+        "schedule": 300.0,
+        "options": {"queue": "surveillance"},
+    },
 }
 
-# django-allauth settings
-AUTHENTICATION_BACKENDS = [
-    "django.contrib.auth.backends.ModelBackend",
-    "allauth.account.auth_backends.AuthenticationBackend",
-]
-
-SITE_ID = 1
-
-# allauth account settings
-ACCOUNT_SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
-ACCOUNT_LOGIN_METHODS = {"email", "username"}
-ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_SESSION_REMEMBER = True
-ACCOUNT_ADAPTER = "accounts.adapter.CustomAccountAdapter"
-
-# allauth social account settings (for future OAuth integration)
-SOCIALACCOUNT_ADAPTER = "accounts.adapter.CustomSocialAccountAdapter"
-SOCIALACCOUNT_QUERY_EMAIL = True
-SOCIALACCOUNT_PROVIDERS = {}
 
 # REST Framework authentication
 REST_FRAMEWORK = {

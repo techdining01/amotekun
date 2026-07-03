@@ -6,6 +6,7 @@ from .views import (
     RoadViewSet,
     TrafficCameraViewSet,
     TrafficAlertViewSet,
+    TrafficSnapshotViewSet,
 )
 
 router = DefaultRouter()

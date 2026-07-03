@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import dashboard_view, role_redirect
+from .views import dashboard_view, camera_grid_view, role_redirect
 from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
@@ -8,4 +8,5 @@ urlpatterns = [
     path("officer/", login_required(dashboard_view), name="officer-dashboard"),
     path("dispatcher/", login_required(dashboard_view), name="dispatcher-dashboard"),
     path("admin/", login_required(dashboard_view), name="admin-dashboard"),
+    path("cameras/", login_required(camera_grid_view), name="camera-grid"),
 ]

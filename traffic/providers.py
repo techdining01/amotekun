@@ -167,3 +167,14 @@ class HereTrafficProvider(BaseTrafficProvider):
             "weather_condition": "",
             "raw_data": current_flow,
         }
+
+
+def get_traffic_provider(provider_name: str):
+    provider_name = provider_name.lower()
+    if provider_name == "tomtom":
+        return TomTomTrafficProvider()
+    if provider_name == "here":
+        return HereTrafficProvider()
+    if provider_name == "mock":
+        return MockTrafficProvider()
+    raise ValueError(f"Unknown traffic provider: {provider_name}")

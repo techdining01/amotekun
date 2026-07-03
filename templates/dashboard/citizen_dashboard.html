@@ -36,20 +36,20 @@
 </div>
 
 {% cotton card %}
-    {% cotton:slot "header" %}
+    {% cotton:slot header %}
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Report New Incident</h2>
     {% endcotton:slot %}
-    {% cotton:slot "body" %}
+    {% cotton:slot body %}
         <p class="text-gray-600 mb-4">Click the button below to report an incident on the map.</p>
         {% cotton button variant="primary" %}Go to Map{% endcotton %}
     {% endcotton:slot %}
 {% endcotton %}
 
 {% cotton card %}
-    {% cotton:slot "header" %}
+    {% cotton:slot header %}
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
     {% endcotton:slot %}
-    {% cotton:slot "body" %}
+    {% cotton:slot body %}
         <p class="text-gray-500">No recent activity to display.</p>
     {% endcotton:slot %}
 {% endcotton %}

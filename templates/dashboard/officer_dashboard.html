@@ -38,19 +38,19 @@
 </div>
 
 {% cotton card %}
-    {% cotton:slot "header" %}
+    {% cotton:slot header %}
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Current Assignments</h2>
     {% endcotton:slot %}
-    {% cotton:slot "body" %}
+    {% cotton:slot body %}
         <p class="text-gray-500">No active assignments at this time.</p>
     {% endcotton:slot %}
 {% endcotton %}
 
 {% cotton card %}
-    {% cotton:slot "header" %}
+    {% cotton:slot header %}
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Report Incident</h2>
     {% endcotton:slot %}
-    {% cotton:slot "body" %}
+    {% cotton:slot body %}
         <p class="text-gray-600 mb-4">Report incidents you observe while on patrol.</p>
         {% cotton button variant="primary" %}Go to Map{% endcotton %}
     {% endcotton:slot %}

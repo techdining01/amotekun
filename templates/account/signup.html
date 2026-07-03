@@ -2,37 +2,28 @@
 
 {% block title %}Sign Up | Amotekun{% endblock %}
 {% block heading %}Create your account{% endblock %}
-{% block subheading %}Join Amotekun with a secure, mobile-first signup form.{% endblock %}
 
 {% block content %}
-    {% cotton auth_card title="Create your account" subtitle="Fast onboarding with secure, mobile-first signup flows." %}
-        <div class="px-8 pb-8 sm:px-10">
-            <form method="post" action="{% url 'account_signup' %}" class="space-y-6">
-                {% csrf_token %}
-                {% for field in form %}
-                    <div>
-                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-200 mb-2">{{ field.label }}</label>
-                        <div class="rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500">
-                            {{ field }}
-                        </div>
-                        {% if field.errors %}
-                            <p class="mt-2 text-sm text-rose-400">{{ field.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+<form method="post" action="{% url 'account_signup' %}" class="space-y-5" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
+    {% csrf_token %}
+    
+    {% for field in form %}
+        {% cotton field id=field.id_for_label label=field.label errors=field.errors.0 %}
+            {{ field }}
+        {% endcotton %}
+    {% endfor %}
 
-                <div class="rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-sm text-slate-400">
-                    Passwords must be at least 8 characters long.
-                </div>
+    <div class="text-[11px] text-slate-500 leading-relaxed pt-1">
+        Password requires a minimum structural configuration of 8 characters.
+    </div>
 
-                <div>
-                    {% cotton button variant="primary" type="submit" class="w-full py-3 text-sm font-semibold" %}Sign Up{% endcotton %}
-                </div>
-            </form>
+    <div class="pt-2">
+        {% cotton button type="submit" %}Sign Up{% endcotton %}
+    </div>
+</form>
 
-            <p class="mt-6 text-center text-sm text-slate-400">
-                Already registered? <a href="{% url 'account_login' %}" class="font-semibold text-sky-400 hover:text-sky-300">Log in</a>
-            </p>
-        </div>
-    {% endcotton %}
+<div class="mt-6 border-t border-slate-900 pt-6 text-center text-sm text-slate-400">
+    Registered already? 
+    <a href="{% url 'account_login' %}" class="font-medium text-sky-500 hover:underline">Log in</a>
+</div>
 {% endblock %}

@@ -23,9 +23,8 @@ import reports.urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path("sw.js", RedirectView.as_view(url="/static/js/sw.js", permanent=False)),
-    path("accounts/", include("accounts.urls")),
-    path("accounts/", include("allauth.urls")),
     path("api/geography/", include("geography.urls")),
     path("api/", include(reports.urls)),
     path("api/stations/", include("stations.urls")),

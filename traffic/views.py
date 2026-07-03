@@ -1,6 +1,7 @@
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from datetime import timedelta
 from django.contrib.gis.geos import Point
 from django.contrib.gis.measure import D
 from django.utils import timezone
@@ -130,6 +131,39 @@ class RoadViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(roads, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=["get"])
+    def recommend(self, request):
+        """Recommend road segments based on latest traffic snapshot state."""
+        recommendations = []
+        severity_order = {
+            "free": 0,
+            "moderate": 1,
+            "heavy": 2,
+            "severe": 3,
+            "unknown": 4,
+        }
+        for road in self.get_queryset().filter(is_monitored=True):
+            latest_snapshot = road.snapshots.order_by("-timestamp").first()
+            if not latest_snapshot:
+                continue
+            recommendations.append(
+                {
+                    "road_id": road.id,
+                    "road_name": road.name,
+                    "congestion_level": latest_snapshot.congestion_level,
+                    "average_speed": latest_snapshot.average_speed,
+                    "travel_time": latest_snapshot.travel_time,
+                    "incident_count": latest_snapshot.incident_count,
+                    "camera_count": latest_snapshot.camera_count,
+                    "last_snapshot": latest_snapshot.timestamp,
+                    "priority": severity_order.get(latest_snapshot.congestion_level, 4),
+                }
+            )
+        recommendations.sort(
+            key=lambda item: (-item["priority"], item["average_speed"] or 0)
+        )
+        return Response(recommendations)
+
 
 class TrafficCameraViewSet(viewsets.ModelViewSet):
     queryset = TrafficCamera.objects.all()
@@ -159,6 +193,37 @@ class TrafficSnapshotViewSet(viewsets.ModelViewSet):
         if road_id:
             queryset = queryset.filter(road_id=road_id)
         return queryset
+
+    @action(detail=False, methods=["get"])
+    def latest(self, request):
+        """Get the latest traffic snapshots."""
+        snapshots = self.get_queryset().order_by("-timestamp")[:5]
+        serializer = self.get_serializer(snapshots, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def summary(self, request):
+        """Get a traffic summary for dashboard display."""
+        monitored_roads = Road.objects.filter(is_monitored=True).count()
+        severe_count = (
+            self.get_queryset().filter(congestion_level__in=["heavy", "severe"]).count()
+        )
+        active_alerts = TrafficAlert.objects.filter(acknowledged=False).count()
+        latest_snapshot = self.get_queryset().order_by("-timestamp").first()
+        recent_period = timezone.now() - timedelta(hours=1)
+        recent_count = self.get_queryset().filter(timestamp__gte=recent_period).count()
+
+        return Response(
+            {
+                "monitored_roads": monitored_roads,
+                "severe_congestion_count": severe_count,
+                "active_alerts": active_alerts,
+                "latest_snapshot_at": latest_snapshot.timestamp
+                if latest_snapshot
+                else None,
+                "recent_snapshots": recent_count,
+            }
+        )
 
 
 class TrafficAlertViewSet(viewsets.ModelViewSet):
