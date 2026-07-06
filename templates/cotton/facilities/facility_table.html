@@ -1,0 +1,73 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200">
+
+<table class="min-w-full">
+
+<thead class="bg-slate-50">
+
+<tr>
+
+<th class="px-6 py-4 text-left">Facility</th>
+
+<th class="px-6 py-4 text-left">Type</th>
+
+<th class="px-6 py-4 text-left">Status</th>
+
+<th class="px-6 py-4 text-left">Officers</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody class="divide-y divide-slate-100">
+
+{% for facility in facilities %}
+
+<tr class="hover:bg-slate-50">
+
+<td class="px-6 py-4">
+
+{{ facility.name }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ facility.get_facility_type_display }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{% include "cotton/facilities/facility_status_badge.html" %}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ facility.officer_count }}
+
+</td>
+
+<td class="px-6 py-4 text-right">
+
+<button
+hx-get="{{ facility.get_absolute_url }}"
+class="text-blue-600 hover:text-blue-700">
+
+View
+
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>

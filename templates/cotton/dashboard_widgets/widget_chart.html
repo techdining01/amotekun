@@ -1,0 +1,12 @@
+<div class="relative">
+
+    <canvas
+        id="{{ chart_id }}"
+        class="{{ class|default:'h-80 w-full' }}">
+    </canvas>
+
+    {% if loading %}
+        {% include "cotton/dashboard/widget_loading.html" %}
+    {% endif %}
+
+</div>

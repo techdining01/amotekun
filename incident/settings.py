@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework_simplejwt",
     "corsheaders",
+    "accounts",
     "allauth",
     "allauth.account",
     "allauth.socialaccount",
@@ -92,6 +93,10 @@ MIDDLEWARE = [
 ]
 
 # django-allauth settings
+AUTH_USER_MODEL = "dashboard.User"
+ACCOUNT_FORMS = {
+    'signup': 'dashboard.forms.CustomSignupForm',
+}
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
     "allauth.account.auth_backends.AuthenticationBackend",
@@ -104,10 +109,7 @@ SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 LOGIN_METHODS = {"email", "username"}
 EMAIL_VERIFICATION = "mandatory"
 SESSION_REMEMBER = True
-ADAPTER = "accounts.adapter.CustomAccountAdapter"
 
-# allauth social account settings (for future OAuth integration)
-SOCIALACCOUNT_ADAPTER = "accounts.adapter.CustomSocialAccountAdapter"
 SOCIALACCOUNT_QUERY_EMAIL = True
 SOCIALACCOUNT_PROVIDERS = {}
 

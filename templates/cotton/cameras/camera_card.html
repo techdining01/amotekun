@@ -1,0 +1,41 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition">
+
+    <div class="relative">
+
+        <img
+            src="{{ camera.thumbnail|default:'/static/images/camera-placeholder.jpg' }}"
+            class="h-56 w-full rounded-t-2xl object-cover">
+
+        <div class="absolute right-4 top-4">
+
+            {% include "cotton/cameras/camera_status_badge.html" %}
+
+        </div>
+
+    </div>
+
+    <div class="p-5">
+
+        <h3 class="text-lg font-semibold">
+
+            {{ camera.name }}
+
+        </h3>
+
+        <p class="mt-2 text-sm text-slate-500">
+
+            {{ camera.location }}
+
+        </p>
+
+        <div class="mt-5 flex justify-between text-sm">
+
+            <span>{{ camera.camera_type }}</span>
+
+            <span>{{ camera.last_seen|timesince }} ago</span>
+
+        </div>
+
+    </div>
+
+</div>

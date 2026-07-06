@@ -1,0 +1,73 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200">
+
+<table class="min-w-full">
+
+<thead class="bg-slate-50">
+
+<tr>
+
+<th class="px-6 py-4 text-left">Camera</th>
+
+<th class="px-6 py-4 text-left">Location</th>
+
+<th class="px-6 py-4 text-left">Status</th>
+
+<th class="px-6 py-4 text-left">Last Seen</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody class="divide-y divide-slate-100">
+
+{% for camera in cameras %}
+
+<tr class="hover:bg-slate-50">
+
+<td class="px-6 py-4">
+
+{{ camera.name }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ camera.location }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{% include "cotton/cameras/camera_status_badge.html" %}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ camera.last_seen }}
+
+</td>
+
+<td class="px-6 py-4 text-right">
+
+<button
+hx-get="{{ camera.get_absolute_url }}"
+class="text-blue-600">
+
+View
+
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>

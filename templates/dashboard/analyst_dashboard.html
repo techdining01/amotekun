@@ -1,0 +1,248 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
+
+{% block title %}Security Intelligence Dashboard{% endblock %}
+
+{% block page_title %}
+Security Intelligence & Analytics
+{% endblock %}
+
+{% block breadcrumb %}
+Analytics / Intelligence Dashboard
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+
+    <div>
+
+        <h2 class="text-2xl font-bold">
+
+            Intelligence Analytics Center
+
+        </h2>
+
+        <p class="text-slate-500">
+
+            Crime trends, hotspot prediction, AI insights and operational intelligence.
+
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        <button
+            class="rounded-xl bg-indigo-600 px-5 py-3 text-white">
+
+            Generate Intelligence Report
+
+        </button>
+
+        <button
+            class="rounded-xl border border-slate-300 px-5 py-3">
+
+            Export Analytics
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ================================================= -->
+<!-- KPI -->
+<!-- ================================================= -->
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_stats"
+        title="Incidents Analysed"
+        value=total_incidents
+        color="blue"
+        icon="chart-bar" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Hotspots"
+        value=hotspots
+        color="red"
+        icon="fire" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Prediction Accuracy"
+        value=model_accuracy
+        color="green"
+        icon="brain" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Risk Index"
+        value=risk_index
+        color="yellow"
+        icon="shield" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- HOTSPOT MAP -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% cotton "dashboard/widget_map" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- AI SUMMARY -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/ai/ai_summary.html" %}
+
+    {% include "cotton/ai/ai_prediction_card.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- TREND ANALYSIS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_chart"
+        title="Daily Incident Trend" %}
+
+    {% cotton "dashboard/widget_chart"
+        title="Monthly Crime Trend" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- HEATMAPS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_map"
+        title="Crime Heatmap" %}
+
+    {% cotton "dashboard/widget_map"
+        title="Prediction Heatmap" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- INCIDENT ANALYSIS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_chart"
+        title="Incident Categories" %}
+
+    {% cotton "dashboard/widget_chart"
+        title="Resolution Rate" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- WEATHER + TRAFFIC -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/weather/weather_widget.html" %}
+
+    {% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- AI RECOMMENDATIONS -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- FACILITY PERFORMANCE -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_chart"
+        title="Facility Performance" %}
+
+    {% cotton "dashboard/widget_chart"
+        title="Patrol Coverage" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- RECENT INCIDENTS -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/incidents/incident_table.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- CAMERA ANALYTICS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/cameras/camera_grid.html" %}
+
+    {% include "cotton/cameras/camera_events.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- SECURITY REPORTS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_table"
+        title="Weekly Intelligence Reports" %}
+
+    {% cotton "dashboard/widget_table"
+        title="Monthly Intelligence Reports" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- NOTIFICATIONS -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+{% endblock %}

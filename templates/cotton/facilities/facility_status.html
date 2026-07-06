@@ -1,0 +1,33 @@
+{% if facility.status == "active" %}
+
+<span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+
+Operational
+
+</span>
+
+{% elif facility.status == "maintenance" %}
+
+<span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+
+Maintenance
+
+</span>
+
+{% elif facility.status == "offline" %}
+
+<span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+
+Offline
+
+</span>
+
+{% else %}
+
+<span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+
+Unknown
+
+</span>
+
+{% endif %}

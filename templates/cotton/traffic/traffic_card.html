@@ -1,0 +1,53 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+<div class="p-6">
+
+<div class="flex items-center justify-between">
+
+<div>
+
+<h3 class="text-lg font-semibold">
+
+Traffic Status
+
+</h3>
+
+<p class="mt-2 text-slate-500">
+
+{{ traffic.summary }}
+
+</p>
+
+</div>
+
+<div class="text-5xl">
+
+🚦
+
+</div>
+
+</div>
+
+<div class="mt-6">
+
+<div class="h-3 overflow-hidden rounded-full bg-slate-200">
+
+<div
+class="h-full rounded-full bg-red-500"
+style="width: {{ traffic.congestion_percent }}%">
+
+</div>
+
+</div>
+
+<p class="mt-2 text-sm text-slate-500">
+
+Congestion {{ traffic.congestion_percent }}%
+
+</p>
+
+</div>
+
+</div>
+
+</div>

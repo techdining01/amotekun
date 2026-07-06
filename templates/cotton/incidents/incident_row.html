@@ -1,0 +1,39 @@
+<tr class="hover:bg-slate-50">
+
+    <td class="px-6 py-4">
+
+        {{ incident.title }}
+
+    </td>
+
+    <td class="px-6 py-4">
+
+        {{ incident.report_type }}
+
+    </td>
+
+    <td class="px-6 py-4">
+
+        {% include "cotton/incidents/incident_priority_badge.html" %}
+
+    </td>
+
+    <td class="px-6 py-4">
+
+        {% include "cotton/incidents/incident_status_badge.html" %}
+
+    </td>
+
+    <td class="px-6 py-4 text-right">
+
+        <a
+            hx-get="{{ incident.get_absolute_url }}"
+            class="text-blue-600 cursor-pointer">
+
+            View
+
+        </a>
+
+    </td>
+
+</tr>

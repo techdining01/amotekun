@@ -1,0 +1,90 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+    <div class="p-6">
+
+        <div class="flex items-center justify-between">
+
+            <div>
+
+                <p class="text-sm text-slate-500">
+
+                    Current Weather
+
+                </p>
+
+                <h2 class="mt-2 text-4xl font-bold">
+
+                    {{ weather.temperature }}°
+
+                </h2>
+
+                <p class="mt-2 text-slate-600">
+
+                    {{ weather.condition }}
+
+                </p>
+
+            </div>
+
+            <img
+                src="{{ weather.icon }}"
+                class="h-20 w-20"
+                alt="weather">
+
+        </div>
+
+        <div class="mt-6 grid grid-cols-3 gap-4">
+
+            <div>
+
+                <p class="text-xs text-slate-400">
+
+                    Humidity
+
+                </p>
+
+                <p class="font-semibold">
+
+                    {{ weather.humidity }}%
+
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-xs text-slate-400">
+
+                    Wind
+
+                </p>
+
+                <p class="font-semibold">
+
+                    {{ weather.wind_speed }}
+
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-xs text-slate-400">
+
+                    Visibility
+
+                </p>
+
+                <p class="font-semibold">
+
+                    {{ weather.visibility }}
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

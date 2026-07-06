@@ -1,0 +1,13 @@
+<div class="relative p-6">
+
+    {% if loading %}
+        {% include "cotton/dashboard/widget_loading.html" %}
+    {% elif error %}
+        {% include "cotton/dashboard/widget_error.html" %}
+    {% elif empty %}
+        {% include "cotton/dashboard/widget_empty.html" %}
+    {% else %}
+        {{ slot }}
+    {% endif %}
+
+</div>

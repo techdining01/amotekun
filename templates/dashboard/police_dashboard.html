@@ -1,0 +1,207 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
+
+{% block title %}Police Dashboard{% endblock %}
+
+{% block page_title %}
+Police Command Center
+{% endblock %}
+
+{% block breadcrumb %}
+Operations / Police Dashboard
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+
+    <div>
+
+        <h2 class="text-2xl font-bold">
+
+            Police Operations
+
+        </h2>
+
+        <p class="text-slate-500">
+
+            Monitor incidents, dispatch officers and coordinate field operations.
+
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        <button
+            class="rounded-xl bg-red-600 px-5 py-3 text-white">
+
+            Emergency Dispatch
+
+        </button>
+
+        <button
+            class="rounded-xl border border-slate-300 px-5 py-3">
+
+            Create Patrol
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ========================================================= -->
+<!-- KPIs -->
+<!-- ========================================================= -->
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_stats"
+        title="Assigned Incidents"
+        value=assigned_incidents
+        color="red"
+        icon="alert" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Active Patrols"
+        value=active_patrols
+        color="blue"
+        icon="shield" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Officers Online"
+        value=officers_online
+        color="green"
+        icon="users" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Emergency Calls"
+        value=emergency_calls
+        color="yellow"
+        icon="phone" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- MAP + INCIDENTS -->
+<!-- ========================================================= -->
+
+<div class="mt-6 grid gap-6 xl:grid-cols-3">
+
+    <div class="xl:col-span-2">
+
+        {% cotton "dashboard/widget_map" %}
+
+    </div>
+
+    <div>
+
+        {% include "cotton/incidents/incident_feed.html" %}
+
+    </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- DISPATCH + PATROLS -->
+<!-- ========================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/dispatch/dispatch_queue.html" %}
+
+    {% include "cotton/patrol/patrol_grid.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- CAMERAS -->
+<!-- ========================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/cameras/camera_grid.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- LIVE STREAM + EVENTS -->
+<!-- ========================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/cameras/camera_stream.html" %}
+
+    {% include "cotton/cameras/camera_events.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- ROUTES -->
+<!-- ========================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/weather/weather_widget.html" %}
+
+    {% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- AI -->
+<!-- ========================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/ai/ai_summary.html" %}
+
+    {% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- FACILITIES -->
+<!-- ========================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/facilities/facility_grid.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- OFFICER TASKS -->
+<!-- ========================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/tasks/task_table.html" %}
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- NOTIFICATIONS -->
+<!-- ========================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,48 @@
+<div
+    x-data="{show:true}"
+    x-show="show"
+    x-transition
+    class="rounded-xl border border-red-300 bg-red-50 p-4">
+
+    <div class="flex items-center justify-between">
+
+        <div class="flex items-center gap-3">
+
+            <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 9v2m0 4h.01M5.07 19h13.86A2 2 0 0020.7 16L13.77 4a2 2 0 00-3.54 0L3.3 16A2 2 0 005.07 19z"/>
+
+            </svg>
+
+            <div>
+
+                <div class="font-semibold">
+
+                    {{ title }}
+
+                </div>
+
+                <div class="text-sm text-slate-600">
+
+                    {{ message }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <button
+            @click="show=false"
+            class="rounded-lg p-2 hover:bg-red-100">
+
+            ✕
+
+        </button>
+
+    </div>
+
+</div>

@@ -125,14 +125,15 @@ class Road(models.Model):
         ("local", "Local"),
     ]
 
-    name = models.CharField(max_length=255)
+    source_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
+    name = models.CharField(max_length=255, blank=True, null=True)
     road_type = models.CharField(max_length=20, choices=ROAD_TYPES, default="local")
-    geometry = gis_models.LineStringField(srid=4326)
+    geometry = gis_models.LineStringField(srid=4326, null=True, blank=True)
 
     # Traffic capacity
-    speed_limit = models.IntegerField(help_text="Speed limit in km/h")
+    speed_limit = models.IntegerField(help_text="Speed limit in km/h", null=True, blank=True)
     lanes = models.IntegerField(default=2)
-    capacity = models.IntegerField(help_text="Vehicles per hour")
+    capacity = models.IntegerField(help_text="Vehicles per hour", null=True, blank=True)
 
     # Monitoring
     is_monitored = models.BooleanField(default=True)
@@ -146,10 +147,11 @@ class Road(models.Model):
         indexes = [
             models.Index(fields=["is_monitored"]),
             models.Index(fields=["road_type"]),
+            models.Index(fields=["source_id"]),
         ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name or 'Unnamed road'} {self.road_type} {self.speed_limit if self.speed_limit else 'N/A'} km/h"
 
     def get_current_flow(self):
         """Get most recent traffic flow data"""

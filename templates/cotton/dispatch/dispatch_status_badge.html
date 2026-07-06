@@ -1,0 +1,65 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition">
+
+    <div class="p-6">
+
+        <div class="flex items-start justify-between">
+
+            <div>
+
+                <h3 class="text-lg font-semibold">
+
+                    {{ dispatch.title }}
+
+                </h3>
+
+                <p class="mt-2 text-sm text-slate-500">
+
+                    {{ dispatch.description }}
+
+                </p>
+
+            </div>
+
+            {% include "cotton/dispatch/dispatch_status_badge.html" %}
+
+        </div>
+
+        <div class="mt-6 grid grid-cols-2 gap-5">
+
+            <div>
+
+                <div class="text-xs uppercase text-slate-400">
+
+                    Assigned Unit
+
+                </div>
+
+                <div class="font-medium">
+
+                    {{ dispatch.unit }}
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div class="text-xs uppercase text-slate-400">
+
+                    Destination
+
+                </div>
+
+                <div class="font-medium">
+
+                    {{ dispatch.destination }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

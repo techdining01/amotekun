@@ -1,56 +1,209 @@
 {% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
 
-{% block sidebar %}
-<a href="{% url 'citizen-dashboard' %}" class="flex items-center px-4 py-3 text-gray-700 bg-blue-50 rounded-lg mb-2">
-    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-    </svg>
-    Dashboard
-</a>
-<a href="/" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
-    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-    </svg>
-    Map View
-</a>
-<a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
-    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-    </svg>
-    My Reports
-</a>
-<a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
-    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-    </svg>
-    Nearby Facilities
-</a>
+{% block title %}Citizen Dashboard{% endblock %}
+
+{% block page_title %}
+Citizen Safety Portal
 {% endblock %}
 
-{% block content %}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    {% cotton statistics_card title="My Reports" value="0" value_color="text-blue-600" subtitle="Total incidents reported" %}{% endcotton %}
-    {% cotton statistics_card title="Nearby Incidents" value="0" value_color="text-orange-600" subtitle="In your area" %}{% endcotton %}
-    {% cotton statistics_card title="Nearby Stations" value="0" value_color="text-green-600" subtitle="Police & Amotekun" %}{% endcotton %}
+{% block breadcrumb %}
+Citizen / Dashboard
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+
+    <div>
+
+        <h2 class="text-2xl font-bold">
+            Welcome, {{ user.get_full_name|default:user.username }}
+        </h2>
+
+        <p class="text-slate-500">
+            Report emergencies, monitor your reports and receive security alerts.
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        <button
+            class="rounded-xl bg-red-600 px-5 py-3 text-white">
+
+            Report Emergency
+
+        </button>
+
+        <button
+            class="rounded-xl bg-blue-600 px-5 py-3 text-white">
+
+            Request Assistance
+
+        </button>
+
+    </div>
+
 </div>
 
-{% cotton card %}
-    {% cotton:slot header %}
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Report New Incident</h2>
-    {% endcotton:slot %}
-    {% cotton:slot body %}
-        <p class="text-gray-600 mb-4">Click the button below to report an incident on the map.</p>
-        {% cotton button variant="primary" %}Go to Map{% endcotton %}
-    {% endcotton:slot %}
-{% endcotton %}
+{% endblock %}
 
-{% cotton card %}
-    {% cotton:slot header %}
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Recent Activity</h2>
-    {% endcotton:slot %}
-    {% cotton:slot body %}
-        <p class="text-gray-500">No recent activity to display.</p>
-    {% endcotton:slot %}
-{% endcotton %}
+
+{% block content %}
+
+<!-- ====================================================== -->
+<!-- QUICK STATS -->
+<!-- ====================================================== -->
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_stats"
+        title="My Reports"
+        value=my_reports
+        icon="document"
+        color="blue" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Open Cases"
+        value=open_cases
+        icon="shield"
+        color="yellow" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Resolved Cases"
+        value=resolved_cases
+        icon="check-circle"
+        color="green" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Emergency Alerts"
+        value=alerts
+        icon="bell"
+        color="red" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- INCIDENT MAP -->
+<!-- ====================================================== -->
+
+<div class="mt-6">
+
+    {% cotton "dashboard/widget_map" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- MY INCIDENTS -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/incidents/incident_feed.html" %}
+
+    {% include "cotton/tasks/task_table.html" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- EMERGENCY SERVICES -->
+<!-- ====================================================== -->
+
+<div class="mt-6">
+
+    {% include "cotton/facilities/facility_grid.html" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- SAFETY ALERTS -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/alerts/alert_feed.html" %}
+
+    {% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- AI SAFETY ASSISTANT -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/ai/ai_summary.html" %}
+
+    {% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- WEATHER & TRAFFIC -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/weather/weather_widget.html" %}
+
+    {% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- SAFETY TIPS -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_activity"
+        title="Community Safety Tips" %}
+
+    {% cotton "dashboard/widget_activity"
+        title="Recent Community Updates" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- NEARBY EMERGENCY CONTACTS -->
+<!-- ====================================================== -->
+
+<div class="mt-6">
+
+    {% cotton "dashboard/widget_table"
+        title="Nearby Emergency Contacts" %}
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- QUICK ACTIONS -->
+<!-- ====================================================== -->
+
+<div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_actions"
+        title="Emergency Call" %}
+
+    {% cotton "dashboard/widget_actions"
+        title="Share Live Location" %}
+
+    {% cotton "dashboard/widget_actions"
+        title="Upload Evidence" %}
+
+    {% cotton "dashboard/widget_actions"
+        title="Anonymous Report" %}
+
+</div>
+
 {% endblock %}

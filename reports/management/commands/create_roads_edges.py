@@ -28,8 +28,8 @@ class Command(BaseCommand):
         with connection.cursor() as cur:
             # verify source table exists
             cur.execute("SELECT to_regclass(%s)", [table])
-            reg = cur.fetchone()[0]
-            if not reg:
+            reg = cur.fetchone()
+            if not reg or not reg[0]:
                 self.stdout.write(
                     self.style.ERROR(f"Source table {table} not found")
                 )
@@ -45,19 +45,30 @@ class Command(BaseCommand):
                 )
                 return
 
-            # add source/target if missing using pgr_createTopology
+            # check for missing source/target columns
             cur.execute(
                 "SELECT column_name FROM information_schema.columns WHERE table_name=%s AND column_name IN ('source','target')",
                 [table],
             )
             cols = [r[0] for r in cur.fetchall()]
+            
             if "source" not in cols or "target" not in cols:
                 try:
+                    # Manually inject the target/source columns first to ensure data-type integrity
+                    self.stdout.write(f"Preparing routing columns on {table}...")
+                    cur.execute(
+                        sql.SQL(
+                            "ALTER TABLE {} "
+                            "ADD COLUMN IF NOT EXISTS source INTEGER, "
+                            "ADD COLUMN IF NOT EXISTS target INTEGER;"
+                        ).format(sql.Identifier(table))
+                    )
+
                     self.stdout.write(
                         f"Running pgr_createTopology on {table} (tolerance={tol})..."
                     )
                     cur.execute(
-                        "SELECT pgr_createTopology(%s, %s, %s, %s);",
+                        "SELECT public.pgr_createTopology(%s::text, %s::float8, %s::text, %s::text);",
                         [table, tol, geom, "id"],
                     )
                 except Exception as e:
@@ -75,11 +86,13 @@ class Command(BaseCommand):
                 cur.execute(sql.SQL("DROP TABLE IF EXISTS public.{} CASCADE;").format(
                     sql.Identifier("roads_edges")
                 ))
+                
+                # FIX: Removed ::geography cast. ST_Transform requires geometry type directly.
                 cur.execute(
                     sql.SQL(
                         "CREATE TABLE public.roads_edges AS SELECT id, source, target, "
-                        "ST_Length(ST_Transform({}::geography, 3857)::geometry) AS cost, "
-                        "ST_Length(ST_Transform({}::geography, 3857)::geometry) AS reverse_cost "
+                        "ST_Length(ST_Transform({}::geometry, 3857)) AS cost, "
+                        "ST_Length(ST_Transform({}::geometry, 3857)) AS reverse_cost "
                         "FROM public.{};"
                     ).format(sql.Identifier(geom), sql.Identifier(geom), sql.Identifier(table))
                 )

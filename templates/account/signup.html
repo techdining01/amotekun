@@ -1,29 +1,85 @@
 {% extends "account/base_account.html" %}
 
 {% block title %}Sign Up | Amotekun{% endblock %}
-{% block heading %}Create your account{% endblock %}
+{% block heading %}Create Account{% endblock %}
+{% block subheading %}Join Amotekun and choose your role to get started.{% endblock %}
 
 {% block content %}
-<form method="post" action="{% url 'account_signup' %}" class="space-y-5" x-data="{ isSubmitting: false }" @submit="isSubmitting = true">
-    {% csrf_token %}
-    
-    {% for field in form %}
-        {% cotton field id=field.id_for_label label=field.label errors=field.errors.0 %}
-            {{ field }}
-        {% endcotton %}
-    {% endfor %}
+    {% cotton auth_card title="Sign Up" subtitle="Fill in your details and select your role below." %}
+        <form method="post" action="{% url 'account_signup' %}" class="space-y-5" x-data="{ isSubmitting: false, selectedRole: 'CITIZEN' }" @submit="isSubmitting = true">
+            {% csrf_token %}
+            
+            <!-- Username -->
+            {% for field in form %}
+                {% if field.name != 'role' %}
+                    {% cotton field id=field.id_for_label label=field.label errors=field.errors.0 %}
+                        {{ field }}
+                    {% endcotton %}
+                {% endif %}
+            {% endfor %}
 
-    <div class="text-[11px] text-slate-500 leading-relaxed pt-1">
-        Password requires a minimum structural configuration of 8 characters.
-    </div>
+            <!-- Role Selection -->
+            <div class="space-y-3">
+                <label class="block text-sm font-medium text-slate-200">Select Your Role</label>
+                <div class="grid grid-cols-2 gap-3">
+                    {% for value, label in form.role.field.choices %}
+                        <label 
+                            class="relative flex flex-col p-4 rounded-2xl border cursor-pointer transition-all duration-200"
+                            :class="selectedRole === '{{ value }}' ? 'border-sky-500 bg-sky-500/10' : 'border-slate-700 bg-slate-900/50 hover:border-slate-500'"
+                        >
+                            <input 
+                                type="radio" 
+                                name="{{ form.role.name }}" 
+                                value="{{ value }}" 
+                                id="role-{{ value }}"
+                                x-model="selectedRole"
+                                class="sr-only"
+                                {% if form.role.value == value %}checked{% endif %}
+                            >
+                            <div class="flex items-center justify-between">
+                                <span 
+                                    class="text-sm font-semibold"
+                                    :class="selectedRole === '{{ value }}' ? 'text-sky-400' : 'text-slate-300'"
+                                >
+                                    {{ label }}
+                                </span>
+                                <div 
+                                    class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                    :class="selectedRole === '{{ value }}' ? 'border-sky-500 bg-sky-500' : 'border-slate-500'"
+                                >
+                                    <div 
+                                        x-show="selectedRole === '{{ value }}'"
+                                        class="w-2 h-2 bg-white rounded-full"
+                                    ></div>
+                                </div>
+                            </div>
+                        </label>
+                    {% endfor %}
+                </div>
+                {% if form.role.errors %}
+                    <p class="text-sm text-rose-400 font-medium flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        {{ form.role.errors.0 }}
+                    </p>
+                {% endif %}
+            </div>
 
-    <div class="pt-2">
-        {% cotton button type="submit" %}Sign Up{% endcotton %}
-    </div>
-</form>
+            <div class="pt-2">
+                {% cotton button type="submit" variant="primary" %}
+                    Create Account
+                {% endcotton %}
+            </div>
+        </form>
 
-<div class="mt-6 border-t border-slate-900 pt-6 text-center text-sm text-slate-400">
-    Registered already? 
-    <a href="{% url 'account_login' %}" class="font-medium text-sky-500 hover:underline">Log in</a>
-</div>
+        <div class="mt-6 pt-6 border-t border-slate-800 text-center">
+            <p class="text-sm text-slate-400">
+                Already have an account?
+                <a href="{% url 'account_login' %}" class="font-semibold text-sky-400 hover:text-sky-300 transition-colors">
+                    Sign in
+                </a>
+            </p>
+        </div>
+    {% endcotton %}
 {% endblock %}

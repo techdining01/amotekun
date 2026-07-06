@@ -1,0 +1,39 @@
+<tr class="hover:bg-slate-50 transition">
+
+<td class="px-6 py-4">
+
+{{ dispatch.title }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ dispatch.unit }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{{ dispatch.priority }}
+
+</td>
+
+<td class="px-6 py-4">
+
+{% include "cotton/dispatch/dispatch_status_badge.html" %}
+
+</td>
+
+<td class="px-6 py-4 text-right">
+
+<button
+hx-get="{{ dispatch.get_absolute_url }}"
+class="text-blue-600 hover:text-blue-700">
+
+Open
+
+</button>
+
+</td>
+
+</tr>

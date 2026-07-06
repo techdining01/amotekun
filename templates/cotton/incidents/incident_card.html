@@ -1,0 +1,41 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-lg">
+
+    <div class="p-5">
+
+        <div class="flex justify-between items-start">
+
+            <div>
+
+                <h3 class="font-semibold text-slate-800">
+
+                    {{ incident.title }}
+
+                </h3>
+
+                <p class="mt-2 text-sm text-slate-500 line-clamp-2">
+
+                    {{ incident.description }}
+
+                </p>
+
+            </div>
+
+            {% include "cotton/incidents/incident_priority_badge.html" %}
+
+        </div>
+
+        <div class="mt-4 flex items-center justify-between">
+
+            {% include "cotton/incidents/incident_status_badge.html" %}
+
+            <span class="text-xs text-slate-400">
+
+                {{ incident.created_at|timesince }} ago
+
+            </span>
+
+        </div>
+
+    </div>
+
+</div>

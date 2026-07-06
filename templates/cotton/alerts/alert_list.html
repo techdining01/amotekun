@@ -1,0 +1,13 @@
+<div class="divide-y divide-slate-100">
+
+    {% for alert in alerts %}
+
+        {% include "cotton/alerts/alert_item.html" %}
+
+    {% empty %}
+
+        {% include "cotton/alerts/alert_empty.html" %}
+
+    {% endfor %}
+
+</div>

@@ -1,0 +1,33 @@
+{% if alert.level == "critical" %}
+
+<span class="rounded-full bg-red-600 px-3 py-1 text-xs font-semibold text-white">
+
+Critical
+
+</span>
+
+{% elif alert.level == "high" %}
+
+<span class="rounded-full bg-orange-500 px-3 py-1 text-xs font-semibold text-white">
+
+High
+
+</span>
+
+{% elif alert.level == "medium" %}
+
+<span class="rounded-full bg-yellow-400 px-3 py-1 text-xs font-semibold text-slate-900">
+
+Medium
+
+</span>
+
+{% else %}
+
+<span class="rounded-full bg-emerald-500 px-3 py-1 text-xs font-semibold text-white">
+
+Low
+
+</span>
+
+{% endif %}

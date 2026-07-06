@@ -1,0 +1,18 @@
+<div
+class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+hx-get="{{ refresh_url }}"
+hx-trigger="load,every 15s"
+hx-target="this"
+hx-swap="innerHTML">
+
+{% for camera in cameras %}
+
+{% include "cotton/cameras/camera_card.html" %}
+
+{% empty %}
+
+{% include "cotton/cameras/camera_empty.html" %}
+
+{% endfor %}
+
+</div>

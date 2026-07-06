@@ -1,15 +1,24 @@
-<div class="space-y-1.5">
+<!-- field.html -->
+<div class="space-y-2">
     {% if label %}
-        <label for="{{ id }}" class="block text-xs font-semibold tracking-wider uppercase text-slate-400">
+        <label for="{{ id }}" class="block text-sm font-medium text-slate-200">
             {{ label }}
         </label>
     {% endif %}
     
-    <div class="[&>input]:w-full [&>input]:bg-transparent [&>input]:border-0 [&>input]:p-0 [&>input]:text-white [&>input]:placeholder-slate-600 [&>input]:focus:ring-0 rounded-xl border border-slate-800 bg-slate-900/50 px-4 py-3 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all">
-        {{ slot }}
+    <div class="relative group">
+        <div class="absolute -inset-px bg-gradient-to-r from-sky-500 via-indigo-500 to-sky-500 rounded-2xl opacity-0 group-focus-within:opacity-100 blur-sm transition-opacity duration-300"></div>
+        <div class="relative w-full [&>input]:w-full [&>input]:bg-transparent [&>input]:border-0 [&>input]:p-0 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:focus:ring-0 [&>select]:w-full [&>select]:bg-transparent [&>select]:border-0 [&>select]:p-0 [&>select]:text-white [&>select]:focus:ring-0 rounded-2xl border border-slate-700 bg-slate-950/80 px-4 py-3.5 focus-within:border-sky-500 focus-within:ring-1 focus-within:ring-sky-500 transition-all duration-200">
+            {{ slot }}
+        </div>
     </div>
 
     {% if errors %}
-        <p class="text-xs text-rose-400 font-medium">{{ errors }}</p>
+        <p class="text-sm text-rose-400 font-medium flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {{ errors }}
+        </p>
     {% endif %}
 </div>

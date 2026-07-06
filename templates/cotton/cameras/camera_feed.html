@@ -1,0 +1,41 @@
+<div
+class="space-y-4"
+hx-get="{{ events_url }}"
+hx-trigger="load,every 10s"
+hx-target="this">
+
+{% for event in events %}
+
+<div class="rounded-xl border border-slate-200 p-4">
+
+<div class="font-medium">
+
+{{ event.title }}
+
+</div>
+
+<div class="mt-1 text-sm text-slate-500">
+
+{{ event.description }}
+
+</div>
+
+<div class="mt-2 text-xs text-slate-400">
+
+{{ event.created_at|timesince }} ago
+
+</div>
+
+</div>
+
+{% empty %}
+
+<p class="py-10 text-center text-slate-400">
+
+No camera events.
+
+</p>
+
+{% endfor %}
+
+</div>

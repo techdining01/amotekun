@@ -1,0 +1,145 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
+
+{% block title %}AI Command Center{% endblock %}
+
+{% block page_title %}
+Artificial Intelligence Command Center
+{% endblock %}
+
+{% block breadcrumb %}
+AI / Intelligence Engine
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+    <div>
+        <h2 class="text-2xl font-bold">
+            AI Security Intelligence
+        </h2>
+
+        <p class="text-slate-500">
+            Predictions, anomaly detection, crime intelligence and decision support.
+        </p>
+    </div>
+
+    <div class="flex gap-3">
+
+        <button class="rounded-xl bg-indigo-600 px-5 py-3 text-white">
+            Run Prediction
+        </button>
+
+        <button class="rounded-xl border border-slate-300 px-5 py-3">
+            Generate Report
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+{% cotton "dashboard/widget_stats"
+title="Prediction Accuracy"
+value=prediction_accuracy
+icon="brain"
+color="indigo" %}
+
+{% cotton "dashboard/widget_stats"
+title="Threat Score"
+value=threat_score
+icon="shield"
+color="red" %}
+
+{% cotton "dashboard/widget_stats"
+title="AI Alerts"
+value=ai_alerts
+icon="bell"
+color="yellow" %}
+
+{% cotton "dashboard/widget_stats"
+title="Running Models"
+value=models_running
+icon="cpu"
+color="green" %}
+
+</div>
+
+
+<div class="mt-6">
+
+{% cotton "dashboard/widget_map" %}
+
+</div>
+
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+{% include "cotton/ai/ai_summary.html" %}
+
+{% include "cotton/ai/ai_prediction_card.html" %}
+
+</div>
+
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+{% cotton "dashboard/widget_chart"
+title="Crime Prediction" %}
+
+{% cotton "dashboard/widget_chart"
+title="Hotspot Forecast" %}
+
+</div>
+
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+{% cotton "dashboard/widget_chart"
+title="Model Accuracy" %}
+
+{% cotton "dashboard/widget_chart"
+title="Risk Trend" %}
+
+</div>
+
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+{% include "cotton/cameras/camera_events.html" %}
+
+{% include "cotton/incidents/incident_feed.html" %}
+
+</div>
+
+
+<div class="mt-6">
+
+{% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+{% include "cotton/weather/weather_widget.html" %}
+
+{% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+
+<div class="mt-6">
+
+{% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+{% endblock %}

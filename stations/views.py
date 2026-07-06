@@ -5,9 +5,25 @@ from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.generics import ListAPIView
 
-from .models import PoliceStation, AmotekunStation
-from .serializers import PoliceStationSerializer, AmotekunStationSerializer
+from .models import PoliceStation, AmotekunStation, Hospital
+from .serializers import PoliceStationSerializer, AmotekunStationSerializer, HospitalSerializer
+
+
+class PoliceStationListAPIView(ListAPIView):
+    queryset = PoliceStation.objects.all()
+    serializer_class = PoliceStationSerializer
+
+
+class AmotekunStationListAPIView(ListAPIView):
+    queryset = AmotekunStation.objects.all()
+    serializer_class = AmotekunStationSerializer
+
+
+class HospitalListAPIView(ListAPIView):
+    queryset = Hospital.objects.all()
+    serializer_class = HospitalSerializer
 
 
 def _fast_knn_station(table, lon, lat, limit=1):
@@ -89,8 +105,3 @@ class RouteByPgRoutingAPIView(APIView):
                 {"detail": "pgRouting call failed or not installed", "error": str(e)},
                 status=501,
             )
-
-
-from django.shortcuts import render
-
-# Create your views here.

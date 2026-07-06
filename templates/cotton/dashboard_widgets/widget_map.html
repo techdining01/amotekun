@@ -1,0 +1,18 @@
+<div class="relative overflow-hidden rounded-xl border border-slate-200">
+
+    <div
+        id="{{ map_id }}"
+        class="{{ class|default:'h-[600px] w-full' }}">
+    </div>
+
+    {% if toolbar %}
+
+        <div class="absolute left-4 top-4 z-[500]">
+
+            {{ toolbar }}
+
+        </div>
+
+    {% endif %}
+
+</div>

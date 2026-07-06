@@ -14,18 +14,23 @@
     </svg>
     Map View
 </a>
+<a href="{% url 'camera-grid' %}" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
+    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+    </svg>
+    Camera Grid
+</a>
 <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"></path>
     </svg>
     My Assignments
 </a>
 <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-100 rounded-lg mb-2">
     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-    Nearby Stations
+    Incident History
 </a>
 {% endblock %}
 
@@ -33,26 +38,127 @@
 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
     {% cotton statistics_card title="Active Assignments" value="0" value_color="text-blue-600" subtitle="Currently assigned" %}{% endcotton %}
     {% cotton statistics_card title="Completed Today" value="0" value_color="text-green-600" subtitle="Resolved incidents" %}{% endcotton %}
-    {% cotton statistics_card title="Pending" value="0" value_color="text-orange-600" subtitle="Awaiting response" %}{% endcotton %}
-    {% cotton statistics_card title="Total This Week" value="0" value_color="text-purple-600" subtitle="Assignments" %}{% endcotton %}
+    {% cotton statistics_card title="Pending Alerts" value="0" value_color="text-orange-600" subtitle="Requires attention" %}{% endcotton %}
+    {% cotton statistics_card title="Cameras Online" value="0" value_color="text-purple-600" subtitle="Live monitoring" %}{% endcotton %}
 </div>
 
-{% cotton card %}
-    {% cotton:slot header %}
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Current Assignments</h2>
-    {% endcotton:slot %}
-    {% cotton:slot body %}
-        <p class="text-gray-500">No active assignments at this time.</p>
-    {% endcotton:slot %}
-{% endcotton %}
+<!-- Alert Banner -->
+<div x-data="{ alertVisible: false, alertTitle: '', alertMessage: '', alertType: 'info' }" 
+     x-init="
+        setTimeout(() => {
+            alertVisible = true;
+            alertTitle = 'New Incident Reported';
+            alertMessage = 'A theft incident has been reported in Ogba, Lagos';
+            alertType = 'danger';
+            if (typeof soundAlerts !== 'undefined') {
+                soundAlerts.playAlert();
+            }
+        }, 3000);
+     ">
+    <div x-show="alertVisible" 
+         x-transition:enter="transform ease-out duration-300 transition" 
+         x-transition:enter-start="translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-full"
+         x-transition:enter-end="translate-y-0 opacity-100 sm:translate-x-0"
+         x-transition:leave="transition ease-in duration-100"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed top-4 right-4 z-50 w-full max-w-sm"
+         :class="{
+            'bg-red-50 border-l-4 border-red-500 p-4 rounded-lg shadow-lg': alertType === 'danger',
+            'bg-yellow-50 border-l-4 border-yellow-500 p-4 rounded-lg shadow-lg': alertType === 'warning',
+            'bg-blue-50 border-l-4 border-blue-500 p-4 rounded-lg shadow-lg': alertType === 'info'
+         }">
+        <div class="flex items-start gap-3">
+            <div class="flex-shrink-0">
+                <svg class="w-5 h-5" 
+                     :class="{
+                        'text-red-500': alertType === 'danger',
+                        'text-yellow-500': alertType === 'warning',
+                        'text-blue-500': alertType === 'info'
+                     }" 
+                     fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h4 class="text-sm font-semibold text-gray-900" x-text="alertTitle"></h4>
+                <p class="text-sm text-gray-600 mt-1" x-text="alertMessage"></p>
+            </div>
+            <button @click="alertVisible = false" class="text-gray-400 hover:text-gray-600">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
 
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Current Assignments -->
+    {% cotton card %}
+        {% cotton:slot header %}
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Current Assignments</h2>
+        {% endcotton:slot %}
+        {% cotton:slot body %}
+            <p class="text-gray-500">No active assignments at this time.</p>
+        {% endcotton:slot %}
+    {% endcotton %}
+    
+    <!-- Quick Actions -->
+    {% cotton card %}
+        {% cotton:slot header %}
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        {% endcotton:slot %}
+        {% cotton:slot body %}
+            <div class="flex flex-wrap gap-3">
+                <a href="{% url 'camera-grid' %}" class="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    View Cameras
+                </a>
+                {% cotton button variant="primary" %}Report Incident{% endcotton %}
+                {% cotton button variant="secondary" %}View Map{% endcotton %}
+            </div>
+        {% endcotton:slot %}
+    {% endcotton %}
+</div>
+
+<!-- Camera Grid Preview -->
 {% cotton card %}
     {% cotton:slot header %}
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Report Incident</h2>
+        <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Live Camera Feeds</h2>
+            <a href="{% url 'camera-grid' %}" class="text-sm text-blue-600 hover:text-blue-800">View All</a>
+        </div>
     {% endcotton:slot %}
     {% cotton:slot body %}
-        <p class="text-gray-600 mb-4">Report incidents you observe while on patrol.</p>
-        {% cotton button variant="primary" %}Go to Map{% endcotton %}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="rounded-lg border border-gray-200 overflow-hidden bg-gray-900 aspect-video flex items-center justify-center">
+                <div class="text-center text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm">Camera Feed</p>
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 overflow-hidden bg-gray-900 aspect-video flex items-center justify-center">
+                <div class="text-center text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm">Camera Feed</p>
+                </div>
+            </div>
+            <div class="rounded-lg border border-gray-200 overflow-hidden bg-gray-900 aspect-video flex items-center justify-center">
+                <div class="text-center text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm">Camera Feed</p>
+                </div>
+            </div>
+        </div>
     {% endcotton:slot %}
 {% endcotton %}
 

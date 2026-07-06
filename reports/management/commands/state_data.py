@@ -13,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
 
-        filepath = "static/data/geoBoundaries-NGA-ADM1_simplified.geojson"
+        filepath = "static/data/state.geojson"
 
         with open(filepath, encoding="utf-8") as f:
             data = json.load(f)

@@ -1,0 +1,65 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm hover:shadow-lg transition">
+
+    <div class="p-6">
+
+        <div class="flex items-start justify-between">
+
+            <div>
+
+                <h3 class="text-lg font-semibold">
+
+                    {{ facility.name }}
+
+                </h3>
+
+                <p class="mt-2 text-sm text-slate-500">
+
+                    {{ facility.address }}
+
+                </p>
+
+            </div>
+
+            {% include "cotton/facilities/facility_status_badge.html" %}
+
+        </div>
+
+        <div class="mt-6 grid grid-cols-2 gap-4">
+
+            <div>
+
+                <p class="text-xs uppercase text-slate-400">
+
+                    Type
+
+                </p>
+
+                <p class="font-medium">
+
+                    {{ facility.get_facility_type_display }}
+
+                </p>
+
+            </div>
+
+            <div>
+
+                <p class="text-xs uppercase text-slate-400">
+
+                    Officers
+
+                </p>
+
+                <p class="font-medium">
+
+                    {{ facility.officer_count }}
+
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

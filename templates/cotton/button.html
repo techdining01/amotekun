@@ -1,18 +1,87 @@
-<button 
-    type="{{ type|default:'button' }}" 
-    :disabled="isSubmitting"
-    class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 active:scale-[0.99] transition-all disabled:opacity-50 disabled:pointer-events-none {{ class }}"
->
-    <template x-if="!isSubmitting">
-        <span>{{ slot }}</span>
-    </template>
-    <template x-if="isSubmitting">
-        <span class="flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Processing...
-        </span>
-    </template>
-</button>
+{% comment %}
+Available variants:
+- primary (default): sky blue
+- destructive: red for dangerous actions
+- secondary: outline style
+- ghost: subtle style
+{% endcomment %}
+
+{% if variant == "destructive" %}
+    <button 
+        type="{{ type|default:'button' }}" 
+        :disabled="isSubmitting"
+        class="w-full group relative inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50 focus:ring-offset-2 focus:ring-offset-slate-950 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none {{ class }}"
+    >
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+        <template x-if="!isSubmitting">
+            <span class="relative z-10">{{ slot }}</span>
+        </template>
+        <template x-if="isSubmitting">
+            <span class="relative z-10 flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </template>
+    </button>
+{% elif variant == "secondary" %}
+    <button 
+        type="{{ type|default:'button' }}" 
+        :disabled="isSubmitting"
+        class="w-full group relative inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-semibold text-slate-100 border border-slate-700 bg-slate-950/60 hover:border-slate-500 hover:bg-slate-900/60 focus:outline-none focus:ring-2 focus:ring-slate-500/50 focus:ring-offset-2 focus:ring-offset-slate-950 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none {{ class }}"
+    >
+        <template x-if="!isSubmitting">
+            <span class="relative z-10">{{ slot }}</span>
+        </template>
+        <template x-if="isSubmitting">
+            <span class="relative z-10 flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-slate-100" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </template>
+    </button>
+{% elif variant == "ghost" %}
+    <button 
+        type="{{ type|default:'button' }}" 
+        :disabled="isSubmitting"
+        class="w-full group relative inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-semibold text-slate-300 hover:text-white hover:bg-slate-800/50 focus:outline-none focus:ring-2 focus:ring-slate-500/30 focus:ring-offset-2 focus:ring-offset-slate-950 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none {{ class }}"
+    >
+        <template x-if="!isSubmitting">
+            <span class="relative z-10">{{ slot }}</span>
+        </template>
+        <template x-if="isSubmitting">
+            <span class="relative z-10 flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-slate-300" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </template>
+    </button>
+{% else %}
+    <button 
+        type="{{ type|default:'button' }}" 
+        :disabled="isSubmitting"
+        class="w-full group relative inline-flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/50 focus:ring-offset-2 focus:ring-offset-slate-950 active:scale-[0.99] transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none {{ class }}"
+    >
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+        <template x-if="!isSubmitting">
+            <span class="relative z-10">{{ slot }}</span>
+        </template>
+        <template x-if="isSubmitting">
+            <span class="relative z-10 flex items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+            </span>
+        </template>
+    </button>
+{% endif %}

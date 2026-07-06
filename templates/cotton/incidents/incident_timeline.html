@@ -1,0 +1,43 @@
+<div class="space-y-6">
+
+{% for log in timeline %}
+
+<div class="flex gap-4">
+
+    <div class="h-3 w-3 rounded-full bg-blue-600 mt-2"></div>
+
+    <div>
+
+        <div class="font-medium">
+
+            {{ log.title }}
+
+        </div>
+
+        <div class="text-sm text-slate-500">
+
+            {{ log.description }}
+
+        </div>
+
+        <div class="text-xs text-slate-400 mt-1">
+
+            {{ log.created_at }}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% empty %}
+
+<p class="text-center text-slate-400 py-10">
+
+No timeline available.
+
+</p>
+
+{% endfor %}
+
+</div>

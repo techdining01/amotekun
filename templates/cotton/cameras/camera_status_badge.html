@@ -1,0 +1,25 @@
+{% if camera.status == "online" %}
+
+<span class="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+
+🟢 LIVE
+
+</span>
+
+{% elif camera.status == "offline" %}
+
+<span class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700">
+
+🔴 OFFLINE
+
+</span>
+
+{% elif camera.status == "maintenance" %}
+
+<span class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700">
+
+Maintenance
+
+</span>
+
+{% endif %}

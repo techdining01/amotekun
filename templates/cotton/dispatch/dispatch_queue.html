@@ -1,0 +1,17 @@
+<div
+hx-get="{{ refresh_url }}"
+hx-trigger="load,every 10s"
+hx-target="this"
+hx-swap="innerHTML">
+
+{% for dispatch in dispatches %}
+
+{% include "cotton/dispatch/dispatch_card.html" %}
+
+{% empty %}
+
+{% include "cotton/dispatch/dispatch_empty.html" %}
+
+{% endfor %}
+
+</div>

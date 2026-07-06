@@ -1,0 +1,52 @@
+<div class="rounded-xl border border-red-200 bg-red-50 p-6">
+
+    <div class="flex items-start gap-4">
+
+        <svg
+            class="mt-1 h-6 w-6 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24">
+
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M10.29 3.86l-7.82 13.5A2 2 0 004.18 20h15.64a2 2 0 001.71-2.64L13.71 3.86a2 2 0 00-3.42 0z">
+            </path>
+
+        </svg>
+
+        <div class="flex-1">
+
+            <h3 class="font-semibold text-red-700">
+
+                {{ error_title|default:"Something went wrong" }}
+
+            </h3>
+
+            <p class="mt-1 text-sm text-red-600">
+
+                {{ error_message|default:"Unable to load this widget." }}
+
+            </p>
+
+            {% if retry_url %}
+
+                <button
+                    class="mt-4 rounded-lg bg-red-600 px-4 py-2 text-white transition hover:bg-red-700"
+                    hx-get="{{ retry_url }}"
+                    hx-target="closest .group"
+                    hx-swap="outerHTML">
+
+                    Retry
+
+                </button>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>

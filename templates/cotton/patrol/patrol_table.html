@@ -1,0 +1,62 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200">
+
+<table class="min-w-full">
+
+<thead class="bg-slate-50">
+
+<tr>
+
+<th class="px-6 py-4">Patrol</th>
+
+<th class="px-6 py-4">Vehicle</th>
+
+<th class="px-6 py-4">Status</th>
+
+<th class="px-6 py-4">Team</th>
+
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody class="divide-y divide-slate-100">
+
+{% for patrol in patrols %}
+
+<tr>
+
+<td class="px-6 py-4">{{ patrol.name }}</td>
+
+<td class="px-6 py-4">{{ patrol.vehicle }}</td>
+
+<td class="px-6 py-4">{% include "cotton/patrol/patrol_status_badge.html" %}</td>
+
+<td class="px-6 py-4">{{ patrol.team }}</td>
+
+<td class="px-6 py-4 text-right">
+
+<button
+hx-get="{{ patrol.get_absolute_url }}"
+class="text-blue-600">
+
+Details
+
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+
+
+
+

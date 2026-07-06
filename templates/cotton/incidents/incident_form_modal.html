@@ -1,0 +1,32 @@
+<form
+    method="post"
+    hx-post="{{ action }}"
+    hx-target="{{ target }}"
+    hx-swap="innerHTML"
+    class="space-y-6">
+
+    {% csrf_token %}
+
+    {{ form }}
+
+    <div class="flex justify-end gap-3">
+
+        <button
+            type="button"
+            @click="close()"
+            class="rounded-xl border border-slate-200 px-5 py-2">
+
+            Cancel
+
+        </button>
+
+        <button
+            class="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
+
+            Save Incident
+
+        </button>
+
+    </div>
+
+</form>

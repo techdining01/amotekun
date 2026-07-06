@@ -1,0 +1,16 @@
+<div class="grid gap-6 lg:grid-cols-3"
+     hx-get="{{ refresh_url }}"
+     hx-trigger="load,every 20s"
+     hx-target="this">
+
+{% for patrol in patrols %}
+
+{% include "cotton/patrol/patrol_card.html" %}
+
+{% empty %}
+
+{% include "cotton/patrol/patrol_empty.html" %}
+
+{% endfor %}
+
+</div>

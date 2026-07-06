@@ -1,0 +1,21 @@
+<div class="flex items-center justify-between border-b border-slate-100 py-4">
+
+    <div>
+
+        <div class="font-medium">
+
+            {{ incident.title }}
+
+        </div>
+
+        <div class="text-sm text-slate-500">
+
+            {{ incident.location }}
+
+        </div>
+
+    </div>
+
+    {% include "cotton/incidents/incident_status_badge.html" %}
+
+</div>

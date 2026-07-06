@@ -1,191 +1,848 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"
+      x-data="dashboardLayout()"
+      x-cloak>
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amotekun - {{ role_display }} Dashboard</title>
-    
-    <!-- Tailwind CSS -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>
+        {% block title %}
+            Amotekun {{ role_display }}
+        {% endblock %}
+    </title>
+
+    <!-- Tailwind -->
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
-    <!-- Alpine.js -->
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
-    <!-- Sound Alerts & Notifications -->
-    <script src="{% static 'js/sound-alerts.js' %}"></script>
-    <script src="{% static 'js/notifications.js' %}"></script>
-</head>
-<body class="bg-gray-50" data-user-authenticated="true">
-    <div x-data="{ sidebarOpen: false }" class="min-h-screen">
-        <!-- Mobile sidebar backdrop -->
-        <div x-show="sidebarOpen" x-transition:enter="transition-opacity ease-linear duration-300" 
-             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-             x-transition:leave="transition-opacity ease-linear duration-300"
-             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-             class="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden"
-             @click="sidebarOpen = false"></div>
 
-        <!-- Sidebar -->
-        <div
-             x-transition:enter="transition ease-in-out duration-300 transform"
-             x-transition:enter-start="-translate-x-full" x-transition:enter-end="translate-x-0"
-             x-transition:leave="transition ease-in-out duration-300 transform"
-             x-transition:leave-start="translate-x-0" x-transition:leave-end="-translate-x-full"
-             class="fixed inset-y-0 left-0 z-50 flex h-full w-64 flex-col bg-white shadow-lg transform transition-transform duration-300 lg:static lg:inset-0 lg:translate-x-0"
-             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
-            
-            <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200 shrink-0">
-                <span class="text-xl font-bold text-gray-800">Amotekun</span>
-                <button @click="sidebarOpen = false" class="lg:hidden text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
+    <!-- HTMX -->
+    <script src="{% static 'vendor/htmx.min.js' %}"></script>
 
-            <nav class="mt-6 flex-1 overflow-y-auto px-4 pb-4">
-                {% block sidebar %}
-                {% endblock %}
-            </nav>
-
-            <div class="shrink-0 p-4 border-t border-gray-200">
-                <div class="flex items-center">
-                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-                        {{ user.username|first|upper }}
-                    </div>
-                    <div class="ml-3">
-                        <p class="text-sm font-medium text-gray-700">{{ user.username }}</p>
-                        <p class="text-xs text-gray-500">{{ role_display }}</p>
-                    </div>
-                </div>
-                <a href="#" class="mt-3 block w-full text-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md">
-                    Logout
-                </a>
-            </div>
-        </div>
-
-        <!-- Main content -->
-        <div class="lg:pl-64">
-            <!-- Top bar -->
-            <div class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
-                <button @click="sidebarOpen = true" class="lg:hidden text-gray-500 hover:text-gray-700">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                </button>
-                <h1 class="text-xl font-semibold text-gray-800">{{ role_display }} Dashboard</h1>
-                <div class="flex items-center space-x-4">
-                    <!-- Notification Bell -->
-                    <div x-data="{ notificationOpen: false, unreadCount: 0 }" class="relative">
-                        <button @click="notificationOpen = !notificationOpen" 
-                                class="relative p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            <span x-show="unreadCount > 0" x-text="unreadCount" 
-                                  class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-600 rounded-full"></span>
-                        </button>
-                        
-                        <!-- Notification Panel -->
-                        <div x-show="notificationOpen" @click.away="notificationOpen = false"
-                             x-transition:enter="transition ease-out duration-200"
-                             x-transition:enter-start="opacity-0 scale-95"
-                             x-transition:enter-end="opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-150"
-                             x-transition:leave-start="opacity-100 scale-100"
-                             x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
-                            <div class="p-4 border-b border-gray-200 flex justify-between items-center">
-                                <h3 class="font-semibold text-gray-800">Notifications</h3>
-                                <button @click="notificationClient?.markAllAsRead(); unreadCount = 0" 
-                                        class="text-sm text-blue-600 hover:text-blue-800">Mark all read</button>
-                            </div>
-                            <div id="notification-list" class="max-h-96 overflow-y-auto">
-                                <div class="p-4 text-center text-gray-500 text-sm">No notifications</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Sound Toggle -->
-                    <button @click="soundAlerts?.setEnabled(!soundAlerts?.enabled)" 
-                            class="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
-                            title="Toggle Sound Alerts">
-                        <svg x-show="soundAlerts?.enabled" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                        </svg>
-                        <svg x-show="!soundAlerts?.enabled" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                                  d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-                        </svg>
-                    </button>
-                    
-                    <span class="text-sm text-gray-600">{{ user.email }}</span>
-                </div>
-            </div>
-
-            <!-- Page content -->
-            <main class="p-6">
-                {% block content %}
-                {% endblock %}
-            </main>
-        </div>
-    </div>
-    
-    <!-- Notification Handling Script -->
-    <script>
-        // Initialize notification client
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof notificationClient !== 'undefined') {
-                // Handle incoming notifications
-                notificationClient.on('notification', function(notification) {
-                    const notificationList = document.getElementById('notification-list');
-                    if (notificationList) {
-                        // Remove empty message if present
-                        const emptyMsg = notificationList.querySelector('.text-center');
-                        if (emptyMsg) emptyMsg.remove();
-                        
-                        // Add notification item
-                        const item = document.createElement('div');
-                        item.className = 'p-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer';
-                        item.innerHTML = `
-                            <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                    <div class="w-2 h-2 mt-2 rounded-full bg-blue-500"></div>
-                                </div>
-                                <div class="ml-3 flex-1">
-                                    <p class="text-sm font-medium text-gray-800">${notification.title}</p>
-                                    <p class="text-sm text-gray-600 mt-1">${notification.message}</p>
-                                    <p class="text-xs text-gray-400 mt-1">${new Date(notification.created_at).toLocaleString()}</p>
-                                </div>
-                            </div>
-                        `;
-                        item.addEventListener('click', function() {
-                            notificationClient.markAsRead(notification.id);
-                            item.remove();
-                        });
-                        notificationList.insertBefore(item, notificationList.firstChild);
-                    }
-                });
-                
-                // Handle unread count updates
-                notificationClient.on('unreadCount', function(count) {
-                    const unreadBadge = document.querySelector('[x-text="unreadCount"]');
-                    if (unreadBadge) {
-                        unreadBadge.textContent = count;
-                        unreadBadge.parentElement.style.display = count > 0 ? 'inline-flex' : 'none';
-                    }
-                });
-                
-                // Request initial unread count
-                notificationClient.requestUnreadCount();
-            }
-        });
+    <!-- Alpine -->
+    <script defer
+            src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js">
     </script>
-</body>
+
+       <!-- Notifications -->
+    <script src="{% static 'js/sound-alerts.js' %}" defer></script>
+    <script src="{% static 'js/notifications.js' %}" defer></script>
+
+    <script defer src="{% static 'js/dashboard/dashboard.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/notifications.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/websocket.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/command_palette.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/charts.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/weather.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/traffic.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/camera.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/ai.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/patrol.js' %}"></script>
+
+    <script defer src="{% static 'js/dashboard/htmx.js' %}"></script>
+    
+</head>
+
+<body
+class="bg-slate-100 text-slate-800 antialiased overflow-hidden"
+data-user-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+>
+
+<!-- Global HTMX Indicator -->
+
+<div id="htmx-indicator"
+     class="fixed top-0 left-0 right-0 h-1
+            bg-blue-600
+            origin-left
+            hidden
+            z-[9999]">
+</div>
+
+<div class="flex h-screen overflow-hidden">
+
+    <!-- ====================================================== -->
+    <!-- Mobile Overlay -->
+    <!-- ====================================================== -->
+
+    <div
+        x-show="sidebarOpen"
+        x-transition.opacity
+        class="fixed inset-0
+               bg-black/50
+               backdrop-blur-sm
+               z-40
+               lg:hidden"
+        @click="closeSidebar()">
+    </div>
+
+    <!-- ====================================================== -->
+    <!-- Sidebar -->
+    <!-- ====================================================== -->
+
+    <aside
+
+        class="fixed
+               inset-y-0
+               left-0
+               z-50
+               flex
+               w-72
+               flex-col
+               bg-white
+               border-r
+               border-slate-200
+               shadow-xl
+               transition
+               duration-300
+               ease-in-out
+               lg:translate-x-0"
+
+        :class="sidebarOpen
+                ? 'translate-x-0'
+                : '-translate-x-full lg:translate-x-0'">
+
+        <!-- Logo -->
+
+        <div
+            class="h-16
+                   shrink-0
+                   border-b
+                   border-slate-200
+                   flex
+                   items-center
+                   justify-between
+                   px-6">
+
+            <div>
+
+                <h1 class="font-bold text-xl tracking-tight">
+
+                    AMOTEKUN
+
+                </h1>
+
+                <p class="text-xs text-slate-500">
+
+                    Intelligence Platform
+
+                </p>
+
+            </div>
+
+            <button
+
+                class="lg:hidden"
+
+                @click="closeSidebar()">
+
+                ✕
+
+            </button>
+
+        </div>
+
+        <!-- User -->
+
+        <div class="px-5 py-4 border-b">
+
+            <div class="flex items-center gap-3">
+
+                <div
+                    class="w-12
+                           h-12
+                           rounded-full
+                           bg-blue-600
+                           text-white
+                           flex
+                           items-center
+                           justify-center
+                           font-bold">
+
+                    {{ user.username|first|upper }}
+
+                </div>
+
+                <div>
+
+                    <div class="font-semibold">
+
+                        {{ user.username }}
+
+                    </div>
+
+                    <div class="text-sm text-slate-500">
+
+                        {{ role_display }}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Navigation -->
+
+        <nav
+            class="flex-1
+                   overflow-y-auto
+                   px-4
+                   py-6
+                   space-y-1
+                   scrollbar-thin">
+
+            {% block sidebar %}
+            {% endblock %}
+
+        </nav>
+
+        <!-- Footer -->
+
+        <div
+            class="border-t
+                   bg-slate-50
+                   p-4">
+
+            <a
+
+                href="#"
+
+                class="flex
+                       items-center
+                       justify-center
+                       rounded-lg
+                       border
+                       border-red-200
+                       py-2
+                       text-red-600
+                       hover:bg-red-50
+                       transition">
+
+                Logout
+
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- ====================================================== -->
+    <!-- Main Area -->
+    <!-- ====================================================== -->
+
+    <div
+
+        class="flex
+               flex-1
+               flex-col
+               lg:ml-72
+               min-w-0">
+
+<!-- ====================================================== -->
+<!-- HEADER -->
+<!-- ====================================================== -->
+
+<header
+    class="sticky
+           top-0
+           z-30
+           flex
+           h-16
+           items-center
+           justify-between
+           border-b
+           border-slate-200
+           bg-white/95
+           backdrop-blur
+           px-4
+           lg:px-8">
+
+    <!-- Left -->
+
+    <div class="flex items-center gap-4">
+
+        <!-- Mobile Menu -->
+
+        <button
+            class="rounded-lg p-2 hover:bg-slate-100 lg:hidden transition"
+            @click="toggleSidebar()">
+
+            <svg class="h-6 w-6"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
+
+                <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M4 6h16M4 12h16M4 18h16"/>
+
+            </svg>
+
+        </button>
+
+        <div>
+
+            <h2 class="text-xl font-semibold">
+
+                {% block page_title %}
+                {{ role_display }} Dashboard
+                {% endblock %}
+
+            </h2>
+
+            <div class="text-sm text-slate-500">
+
+                {% block breadcrumb %}
+
+                Dashboard
+
+                {% endblock %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Right -->
+
+    <div class="flex items-center gap-3">
+
+        <!-- Search -->
+
+        <div class="hidden xl:block">
+
+            <input
+
+                type="search"
+
+                placeholder="Search officers, incidents, cameras..."
+
+                class="w-80
+                       rounded-xl
+                       border
+                       border-slate-200
+                       bg-slate-50
+                       px-4
+                       py-2
+                       outline-none
+                       transition
+                       focus:border-blue-500
+                       focus:ring-4
+                       focus:ring-blue-100"
+
+                hx-get="{% url 'search-global' %}"
+
+                hx-trigger="keyup changed delay:400ms"
+
+                hx-target="#search-results"
+
+                hx-indicator="#htmx-indicator">
+
+        </div>
+
+        <!-- Live Status -->
+
+        <div
+            class="hidden
+                   lg:flex
+                   items-center
+                   gap-2
+                   rounded-full
+                   bg-emerald-100
+                   px-3
+                   py-1">
+
+            <span class="h-2 w-2 rounded-full bg-emerald-600 animate-pulse"></span>
+
+            <span class="text-xs font-medium text-emerald-700">
+
+                System Online
+
+            </span>
+
+        </div>
+
+        <!-- Notification -->
+
+        <div
+            class="relative"
+            x-data="{ open:false }">
+
+            <button
+
+                @click="open=!open"
+
+                class="relative
+                       rounded-xl
+                       p-2
+                       hover:bg-slate-100
+                       transition">
+
+                <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 17h5l-1.405-1.405A2.032
+                        2.032 0 0118 14.158V11a6.002
+                        6.002 0 00-4-5.659V5a2
+                        2 0 10-4 0v.341C7.67
+                        6.165 6 8.388 6
+                        11v3.159c0 .538-.214
+                        1.055-.595
+                        1.436L4 17h5m6
+                        0v1a3 3 0
+                        11-6 0v-1m6
+                        0H9"/>
+
+                </svg>
+
+                <span
+
+                    x-show="notificationCount>0"
+
+                    x-text="notificationCount"
+
+                    class="absolute
+                           -right-1
+                           -top-1
+                           flex
+                           h-5
+                           min-w-[20px]
+                           items-center
+                           justify-center
+                           rounded-full
+                           bg-red-600
+                           px-1
+                           text-[10px]
+                           font-bold
+                           text-white">
+
+                </span>
+
+            </button>
+
+            <!-- Dropdown -->
+
+            <div
+
+                x-show="open"
+
+                @click.outside="open=false"
+
+                x-transition.opacity.scale
+
+                class="absolute
+                       right-0
+                       mt-3
+                       w-[380px]
+                       overflow-hidden
+                       rounded-2xl
+                       border
+                       border-slate-200
+                       bg-white
+                       shadow-2xl">
+
+                <div
+                    class="flex
+                           items-center
+                           justify-between
+                           border-b
+                           px-5
+                           py-4">
+
+                    <h3 class="font-semibold">
+
+                        Notifications
+
+                    </h3>
+
+                    <button
+
+                        class="text-sm
+                               text-blue-600"
+
+                        @click="markAllRead()">
+
+                        Mark all read
+
+                    </button>
+
+                </div>
+
+                <div
+
+                    id="notification-list"
+
+                    class="max-h-[420px]
+                           overflow-y-auto"
+
+                    hx-get="{% url 'notification-list' %}"
+
+                    hx-trigger="load,every 20s"
+
+                    hx-swap="innerHTML"
+
+                    hx-indicator="#htmx-indicator">
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Profile -->
+
+        <div
+
+            class="relative"
+
+            x-data="{ profile:false }">
+
+            <button
+
+                @click="profile=!profile"
+
+                class="flex
+                       items-center
+                       gap-3
+                       rounded-xl
+                       px-2
+                       py-1
+                       hover:bg-slate-100">
+
+                <div
+
+                    class="flex
+                           h-10
+                           w-10
+                           items-center
+                           justify-center
+                           rounded-full
+                           bg-blue-600
+                           font-bold
+                           text-white">
+
+                    {{ user.username|first|upper }}
+
+                </div>
+
+                <div class="hidden lg:block text-left">
+
+                    <div class="text-sm font-semibold">
+
+                        {{ user.username }}
+
+                    </div>
+
+                    <div class="text-xs text-slate-500">
+
+                        {{ role_display }}
+
+                    </div>
+
+                </div>
+
+            </button>
+
+            <!-- Profile Menu -->
+
+            <div
+
+                x-show="profile"
+
+                @click.outside="profile=false"
+
+                x-transition.opacity.scale
+
+                class="absolute
+                       right-0
+                       mt-3
+                       w-64
+                       rounded-2xl
+                       border
+                       border-slate-200
+                       bg-white
+                       shadow-xl">
+
+                <a href="#"
+
+                   class="block px-5 py-3 hover:bg-slate-50">
+
+                    My Profile
+
+                </a>
+
+                <a href="#"
+
+                   class="block px-5 py-3 hover:bg-slate-50">
+
+                    Settings
+
+                </a>
+
+                <hr>
+
+                <a href="#"
+
+                   class="block px-5 py-3 text-red-600 hover:bg-red-50">
+
+                    Logout
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+<!-- ====================================================== -->
+<!-- PAGE -->
+<!-- ====================================================== -->
+
+<main
+
+    class="flex-1
+           overflow-y-auto
+           overflow-x-hidden
+           bg-slate-100">
+
+    <div
+
+        class="mx-auto
+               max-w-7xl
+               space-y-6
+               p-6"
+
+        x-transition.opacity>
+
+        {% block toolbar %}
+        {% endblock %}
+
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+</main>
+
+<!-- ====================================================== -->
+<!-- FOOTER -->
+<!-- ====================================================== -->
+
+<footer
+    class="border-t
+           border-slate-200
+           bg-white
+           px-6
+           py-4">
+
+    <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+
+        <div>
+
+            <p class="text-sm font-medium text-slate-700">
+
+                © {% now "Y" %} Amotekun Intelligence Platform
+
+            </p>
+
+            <p class="text-xs text-slate-500">
+
+                Secure • Intelligent • Responsive
+
+            </p>
+
+        </div>
+
+        <div class="flex items-center gap-5 text-xs text-slate-500">
+
+            <span>
+
+                Version 1.0.0
+
+            </span>
+
+            <span>
+
+                Django {{ django_version|default:"5.x" }}
+
+            </span>
+
+            <span class="flex items-center gap-2">
+
+                <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+
+                System Healthy
+
+            </span>
+
+        </div>
+
+    </div>
+
+</footer>
+
+</div>
+
+<!-- ====================================================== -->
+<!-- TOAST CONTAINER -->
+<!-- ====================================================== -->
+
+<div
+    id="toast-container"
+    class="fixed
+           top-20
+           right-5
+           z-[9999]
+           space-y-3
+           w-96
+           pointer-events-none">
+
+</div>
+
+<!-- ====================================================== -->
+<!-- GLOBAL MODAL ROOT -->
+<!-- ====================================================== -->
+
+<div id="modal-root"></div>
+
+<!-- ====================================================== -->
+<!-- GLOBAL DRAWER ROOT -->
+<!-- ====================================================== -->
+
+<div id="drawer-root"></div>
+
+<!-- ====================================================== -->
+<!-- SEARCH RESULTS -->
+<!-- ====================================================== -->
+
+<div
+    id="search-results"
+    class="hidden">
+</div>
+
+<!-- ====================================================== -->
+<!-- GLOBAL LOADING OVERLAY -->
+<!-- ====================================================== -->
+
+<div
+
+    x-show="loading"
+
+    x-transition.opacity
+
+    class="fixed
+           inset-0
+           bg-black/20
+           backdrop-blur-sm
+           flex
+           items-center
+           justify-center
+           z-[9998]">
+
+    <div
+
+        class="bg-white
+               rounded-xl
+               shadow-xl
+               px-6
+               py-5
+               flex
+               items-center
+               gap-4">
+
+        <svg
+
+            class="animate-spin
+                   h-6
+                   w-6
+                   text-blue-600"
+
+            fill="none"
+
+            viewBox="0 0 24 24">
+
+            <circle
+
+                class="opacity-25"
+
+                cx="12"
+
+                cy="12"
+
+                r="10"
+
+                stroke="currentColor"
+
+                stroke-width="4">
+
+            </circle>
+
+            <path
+
+                class="opacity-75"
+
+                fill="currentColor"
+
+                d="M4 12a8 8 0 018-8v8H4z">
+
+            </path>
+
+        </svg>
+
+        <span class="font-medium">
+
+            Loading...
+
+        </span>
+
+    </div>
+
+</div>
+
+
+<!-- ====================================================== -->
+<!-- AI ASSISTANT INTEGRATION -->
+<!-- ====================================================== -->
+
+<div
+    class="fixed bottom-6 right-6 z-50">
+
+    <button
+
+        class="h-16 w-16 rounded-full bg-blue-600 text-white shadow-xl hover:scale-110 transition">
+
+        🤖
+
+    </button>
+
+</div>
+
+
+</body> 
+
 </html>

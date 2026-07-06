@@ -1,0 +1,203 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
+
+{% block title %}Responder Dashboard{% endblock %}
+
+{% block page_title %}
+Emergency Response Unit
+{% endblock %}
+
+{% block breadcrumb %}
+Operations / Field Response
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+    <div>
+
+        <h2 class="text-2xl font-bold">
+            Field Response Operations
+        </h2>
+
+        <p class="text-slate-500">
+            Respond to emergencies, navigate routes and update incident status in real time.
+        </p>
+
+    </div>
+
+    <div class="flex flex-wrap gap-3">
+
+        <button
+            class="rounded-xl bg-red-600 px-5 py-3 text-white">
+
+            Accept Incident
+
+        </button>
+
+        <button
+            class="rounded-xl bg-emerald-600 px-5 py-3 text-white">
+
+            Arrived On Scene
+
+        </button>
+
+        <button
+            class="rounded-xl border border-slate-300 px-5 py-3">
+
+            Request Backup
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block content %}
+
+<!-- ================================================= -->
+<!-- KPI -->
+<!-- ================================================= -->
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_stats"
+        title="Assigned Incidents"
+        value=assigned_incidents
+        icon="shield"
+        color="red" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Resolved Today"
+        value=resolved_today
+        icon="check-circle"
+        color="green" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Distance Remaining"
+        value=distance_remaining
+        icon="map"
+        color="blue" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="ETA"
+        value=eta
+        icon="clock"
+        color="yellow" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- LIVE NAVIGATION MAP -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% cotton "dashboard/widget_map" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- CURRENT INCIDENT -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/incidents/incident_feed.html" %}
+
+    {% include "cotton/dispatch/dispatch_queue.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- MY TEAM -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/patrol/patrol_grid.html" %}
+
+    {% include "cotton/tasks/task_table.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- NEAREST FACILITIES -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/facilities/facility_grid.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- LIVE CAMERA FEEDS -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/cameras/camera_stream.html" %}
+
+    {% include "cotton/cameras/camera_events.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- WEATHER & TRAFFIC -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/weather/weather_widget.html" %}
+
+    {% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- AI DECISION SUPPORT -->
+<!-- ================================================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/ai/ai_summary.html" %}
+
+    {% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- LIVE ALERTS -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/alerts/alert_feed.html" %}
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- NOTIFICATIONS -->
+<!-- ================================================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+{% endblock %}

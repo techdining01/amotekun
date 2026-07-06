@@ -1,0 +1,162 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load cotton %}
+
+{% block title %}Facility Dashboard{% endblock %}
+
+{% block page_title %}
+Emergency Facilities Management
+{% endblock %}
+
+{% block breadcrumb %}
+Operations / Facilities
+{% endblock %}
+
+{% block toolbar %}
+
+<div class="flex flex-wrap items-center justify-between gap-4">
+
+    <div>
+
+        <h2 class="text-2xl font-bold">
+            Emergency Facilities
+        </h2>
+
+        <p class="text-slate-500">
+            Monitor police stations, Amotekun bases, hospitals, fire stations and emergency resources.
+        </p>
+
+    </div>
+
+    <div class="flex gap-3">
+
+        <button class="rounded-xl bg-blue-600 px-5 py-3 text-white">
+            Register Facility
+        </button>
+
+        <button class="rounded-xl border border-slate-300 px-5 py-3">
+            Update Status
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ================= KPIs ================= -->
+
+<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+
+    {% cotton "dashboard/widget_stats"
+        title="Facilities"
+        value=total_facilities
+        icon="building"
+        color="blue" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Available Ambulances"
+        value=ambulances
+        icon="truck"
+        color="green" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Fire Stations"
+        value=firestations
+        icon="fire"
+        color="red" %}
+
+    {% cotton "dashboard/widget_stats"
+        title="Available Officers"
+        value=available_staff
+        icon="users"
+        color="yellow" %}
+
+</div>
+
+<!-- ================= MAP ================= -->
+
+<div class="mt-6">
+
+    {% cotton "dashboard/widget_map" %}
+
+</div>
+
+<!-- ================= FACILITIES ================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/facilities/facility_grid.html" %}
+
+    {% include "cotton/facilities/facility_table.html" %}
+
+</div>
+
+<!-- ================= RESOURCE STATUS ================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% cotton "dashboard/widget_chart"
+        title="Facility Capacity" %}
+
+    {% cotton "dashboard/widget_chart"
+        title="Resource Availability" %}
+
+</div>
+
+<!-- ================= INCIDENTS ================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/incidents/incident_feed.html" %}
+
+    {% include "cotton/dispatch/dispatch_queue.html" %}
+
+</div>
+
+<!-- ================= CAMERAS ================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/cameras/camera_grid.html" %}
+
+</div>
+
+<!-- ================= WEATHER ================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/weather/weather_widget.html" %}
+
+    {% include "cotton/traffic/traffic_widget.html" %}
+
+</div>
+
+<!-- ================= AI ================= -->
+
+<div class="mt-6 grid gap-6 lg:grid-cols-2">
+
+    {% include "cotton/ai/ai_summary.html" %}
+
+    {% include "cotton/ai/ai_recommendations.html" %}
+
+</div>
+
+<!-- ================= TASKS ================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/tasks/task_table.html" %}
+
+</div>
+
+<!-- ================= NOTIFICATIONS ================= -->
+
+<div class="mt-6">
+
+    {% include "cotton/notifications/notification_list.html" %}
+
+</div>
+
+{% endblock %}

@@ -20,4 +20,4 @@ class HospitalSerializer(GeoFeatureModelSerializer):
     class Meta:
         model = Hospital
         geo_field = "location"
-        fields = ("id", "name", "address", "state", "lga", "has_emergency")
+        fields = ("id", "name", "address", "state", "lga", "has_emergency", "category", "ownership", "function_type", "function", "status")

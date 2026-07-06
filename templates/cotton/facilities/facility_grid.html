@@ -1,0 +1,18 @@
+<div
+class="grid gap-6 md:grid-cols-2 xl:grid-cols-3"
+hx-get="{{ refresh_url }}"
+hx-trigger="load,every 60s"
+hx-target="this"
+hx-swap="innerHTML">
+
+{% for facility in facilities %}
+
+{% include "cotton/facilities/facility_card.html" %}
+
+{% empty %}
+
+{% include "cotton/facilities/facility_empty.html" %}
+
+{% endfor %}
+
+</div>

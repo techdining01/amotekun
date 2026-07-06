@@ -24,6 +24,7 @@ node_modules/
 
 # Environment variables
 .env
+static/data/
 
 # Django
 *.log
