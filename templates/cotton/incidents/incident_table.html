@@ -1,0 +1,109 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+    <div class="px-6 py-4 border-b border-slate-100">
+
+        <h3 class="font-semibold text-slate-800">Incident Registry</h3>
+
+    </div>
+
+    <div class="overflow-x-auto">
+
+        <table class="min-w-full divide-y divide-slate-200">
+
+            <thead class="bg-slate-50">
+
+                <tr>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Incident</th>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Type</th>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Priority</th>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Location</th>
+
+                    <th class="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Reported</th>
+
+                    <th class="px-6 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody class="divide-y divide-slate-100 bg-white">
+
+                {% for incident in incidents %}
+
+                <tr class="hover:bg-slate-50 transition">
+
+                    <td class="px-6 py-4">
+
+                        <div class="flex items-center gap-3">
+
+                            <span class="h-2 w-2 rounded-full shrink-0
+                                {% if incident.priority == 'critical' %}bg-red-500
+                                {% elif incident.priority == 'high' %}bg-orange-400
+                                {% elif incident.priority == 'medium' %}bg-yellow-400
+                                {% else %}bg-slate-300{% endif %}"></span>
+
+                            <span class="text-sm font-medium text-slate-800">{{ incident.title }}</span>
+
+                        </div>
+
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-slate-500">{{ incident.report_type|title }}</td>
+
+                    <td class="px-6 py-4">
+
+                        {% include "cotton/incidents/incident_priority_badge.html" %}
+
+                    </td>
+
+                    <td class="px-6 py-4">
+
+                        {% include "cotton/incidents/incident_status_badge.html" %}
+
+                    </td>
+
+                    <td class="px-6 py-4 text-sm text-slate-500">{{ incident.lga }}, {{ incident.state }}</td>
+
+                    <td class="px-6 py-4 text-sm text-slate-500 whitespace-nowrap">{{ incident.created_at|timesince }} ago</td>
+
+                    <td class="px-6 py-4 text-right">
+
+                        <a href="{{ incident.get_absolute_url }}"
+                           class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition">
+                            View
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="7" class="px-6 py-12 text-center text-sm text-slate-500">
+
+                        <div class="flex flex-col items-center gap-2">
+                            <span class="text-2xl">📋</span>
+                            <p>No incidents recorded yet.</p>
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

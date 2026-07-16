@@ -1,0 +1,220 @@
+<div x-data="{ open: true }" x-show="open" x-cloak class="fixed inset-0 z-[1100] overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 py-8">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="open = false; setTimeout(() => document.getElementById('modal-root').innerHTML = '', 300);"></div>
+        <div class="relative bg-white rounded-2xl text-left overflow-visible shadow-2xl shadow-slate-900/20 transition-all w-full sm:max-w-lg">
+            <div class="px-4 pt-4 pb-3">
+                <div class="flex items-start justify-between">
+                    <h2 class="text-xl font-semibold text-slate-800" id="modal-title">{{ modal_title|default:"Report New Incident" }}</h2>
+                    <button type="button" class="ml-2 flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" @click="open = false; setTimeout(() => document.getElementById('modal-root').innerHTML = '', 300);">
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="border-t border-slate-100 pb-4 px-4 max-h-[80vh] overflow-y-auto">
+                <form id="incident-form" method="post" enctype="multipart/form-data" hx-post="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" hx-encoding="multipart/form-data" hx-on::after-request="onIncidentSaved(event)" class="space-y-3 pt-3">
+                    {% csrf_token %}
+
+                    {% if is_support %}
+                    <div class="rounded-xl bg-blue-50 border border-blue-100 px-4 py-3 text-sm text-blue-700">
+                        🤝 Describe the support you need — Amotekun officers will be dispatched to assist you.
+                    </div>
+                    {% endif %}
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Incident Title</label>
+                        {{ form.title }}
+                        {% for e in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Type</label>
+                            {{ form.report_type }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">State</label>
+                            {{ form.state }}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">LGA</label>
+                            <div id="lga-select-wrapper">{{ form.lga }}</div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Ward</label>
+                            <div id="ward-select-wrapper">{{ form.ward }}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Description</label>
+                        {{ form.description }}
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Media Type</label>
+                            {{ form.media_type }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Attach File</label>
+                            {{ form.file }}
+                            {% for e in form.file.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Latitude</label>
+                            {{ form.latitude }}
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Longitude</label>
+                            {{ form.longitude }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">📍 Pin location on map</label>
+                        <div id="incident-map" style="width:100%;height:260px;border-radius:10px;border:1px solid #e2e8f0;background:#f1f5f9;display:block;"></div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-1">
+                        <button type="button" @click="open = false; setTimeout(() => document.getElementById('modal-root').innerHTML = '', 300);" class="rounded-lg border border-slate-200 px-5 py-2 text-sm hover:bg-slate-50 transition">Cancel</button>
+                        <button type="submit" class="rounded-lg bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 transition font-semibold">Save Incident</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Ensure Leaflet CSS in <head>
+    if (!document.querySelector('link[href*="leaflet"][href*=".css"]')) {
+        var lnk = document.createElement('link');
+        lnk.rel = 'stylesheet';
+        lnk.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(lnk);
+    }
+
+    function loadLeaflet(cb) {
+        if (window.L) { cb(); return; }
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = cb;
+        document.head.appendChild(s);
+    }
+
+    function initMap() {
+        var container = document.getElementById('incident-map');
+        if (!container) return;
+        if (window._incidentMap) { window._incidentMap.remove(); window._incidentMap = null; }
+
+        var map = L.map('incident-map', { zoomControl: true }).setView([9.0, 8.0], 6);
+        window._incidentMap = map;
+        window._incidentMarker = null;
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19, attribution: '\u00a9 OpenStreetMap'
+        }).addTo(map);
+
+        map.invalidateSize();
+
+        // Click on map to pin location
+        map.on('click', function(e) {
+            setMapPin(e.latlng.lat, e.latlng.lng);
+        });
+
+        // GPS: only pan the map, do NOT set lat/lng or drop a pin
+        // lat/lng is only set when user clicks map or selects an LGA
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                map.setView([pos.coords.latitude, pos.coords.longitude], 12);
+                map.invalidateSize();
+            });
+        }
+    }
+
+    // Set pin and update lat/lng fields
+    window.setMapPin = function(lat, lng, pan) {
+        var map = window._incidentMap;
+        if (!map) return;
+        document.getElementById('id_latitude').value = lat.toFixed(6);
+        document.getElementById('id_longitude').value = lng.toFixed(6);
+        if (window._incidentMarker) {
+            window._incidentMarker.setLatLng([lat, lng]);
+        } else {
+            window._incidentMarker = L.marker([lat, lng]).addTo(map);
+        }
+        if (pan) map.setView([lat, lng], 13);
+    };
+
+    // Called when state dropdown changes — pan map to state centroid
+    window.onStateChange = function(sel) {
+        var stateId = sel.value;
+        if (!stateId) return;
+        // Reset ward wrapper
+        document.getElementById('ward-select-wrapper').innerHTML =
+            '<select name="ward" id="id_ward" class="w-full px-4 py-2 border border-slate-200 rounded-lg"><option value="">Select a Ward</option></select>';
+        // Fetch LGA centroid of first LGA in state to pan map
+        fetch('/api/get-lgas/?state=' + stateId)
+            .then(function(r) { return r.text(); })
+            .then(function(html) {
+                // LGA wrapper is updated by HTMX, but also pan map to state
+                // Use state geometry centroid via lga-centroid of first LGA
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                var firstOpt = tmp.querySelector('option[value]:not([value=""])');
+                if (firstOpt) {
+                    fetch('/api/lga-centroid/' + firstOpt.value + '/')
+                        .then(function(r) { return r.json(); })
+                        .then(function(d) {
+                            if (window._incidentMap) window._incidentMap.setView([d.latitude, d.longitude], 9);
+                        }).catch(function(){});
+                }
+            }).catch(function(){});
+    };
+
+    // Called when LGA dropdown changes — pan map to LGA centroid and pin it
+    window.onLgaChange = function(sel) {
+        var lgaId = sel.value;
+        if (!lgaId) return;
+        fetch('/api/lga-centroid/' + lgaId + '/')
+            .then(function(r) { return r.json(); })
+            .then(function(d) {
+                setMapPin(d.latitude, d.longitude, true);
+            }).catch(function(){});
+    };
+
+    // Dismiss modal after successful save (204 response)
+    window.onIncidentSaved = function(evt) {
+        if (evt.detail.xhr && evt.detail.xhr.status === 204) {
+            // Trigger Alpine to close
+            var modalEl = document.querySelector('#modal-root [x-data]');
+            if (modalEl && modalEl._x_dataStack) {
+                modalEl._x_dataStack[0].open = false;
+            }
+            setTimeout(function() {
+                document.getElementById('modal-root').innerHTML = '';
+            }, 300);
+        }
+    };
+
+    loadLeaflet(function() {
+        setTimeout(function() {
+            initMap();
+            setTimeout(function() { if (window._incidentMap) window._incidentMap.invalidateSize(); }, 150);
+        }, 350);
+    });
+
+    // Wire up state select onchange for map pan (HTMX handles LGA population)
+    setTimeout(function() {
+        var stateSel = document.getElementById('id_state');
+        if (stateSel) stateSel.addEventListener('change', function() { onStateChange(this); });
+    }, 400);
+})();
+</script>

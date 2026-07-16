@@ -1,0 +1,49 @@
+<div class="rounded-xl border border-slate-200 bg-white/90 backdrop-blur px-4 py-3 shadow-lg min-w-[180px]"
+     x-data="{ open: false }">
+    <button @click="open = !open"
+            class="flex items-center justify-between w-full text-sm font-semibold text-slate-700">
+        <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+            </svg>
+            Layers
+        </span>
+        <svg class="w-4 h-4 transition-transform" :class="open ? 'rotate-180' : ''"
+             fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+    </button>
+    <div x-show="open" x-transition class="mt-3 space-y-2 border-t border-slate-100 pt-3">
+        {% for layer in layers %}
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-600 hover:text-slate-800">
+            <input type="checkbox" checked
+                   class="w-4 h-4 rounded border-slate-300 text-sky-500 focus:ring-sky-400"
+                   onchange="toggleLayer('{{ layer.id }}', this.checked)">
+            <span class="flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full" style="background:{{ layer.color }}"></span>
+                {{ layer.name }}
+            </span>
+        </label>
+        {% empty %}
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-sky-500">
+            <span class="flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Incidents
+            </span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-sky-500">
+            <span class="flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Patrols
+            </span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-600">
+            <input type="checkbox" checked class="w-4 h-4 rounded border-slate-300 text-sky-500">
+            <span class="flex items-center gap-1.5">
+                <span class="h-2.5 w-2.5 rounded-full bg-emerald-500"></span> Facilities
+            </span>
+        </label>
+        {% endfor %}
+    </div>
+</div>

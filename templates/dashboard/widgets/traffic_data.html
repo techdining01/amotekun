@@ -1,0 +1,114 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="traffic-widget-card">
+
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-amber-50 to-orange-50">
+        <div class="flex items-center gap-2">
+            <span class="text-lg">🚦</span>
+            <h3 class="font-semibold text-slate-800">Traffic Conditions — {{ area_name }}</h3>
+        </div>
+        <span class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            Live 
+        </span>
+    </div>
+
+    <!-- Area selector -->
+    <div class="px-6 pt-4">
+        <form hx-get="{% url 'traffic-widget' %}" hx-target="#traffic-widget-card" hx-swap="outerHTML" class="flex items-center gap-2">
+            <label class="text-xs text-slate-500 shrink-0">Area:</label>
+            <select name="area" onchange="this.form.requestSubmit()"
+                    class="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-amber-300">
+                {% for key, a in areas.items %}
+                <option value="{{ key }}" {% if key == selected_area %}selected{% endif %}>{{ a.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="p-6">
+        {% if error %}
+        <p class="text-sm text-red-500">{{ error }}</p>
+        {% elif flow %}
+
+        <!-- Congestion badge -->
+        <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium text-slate-700">Traffic Level</span>
+            <span class="px-3 py-1 rounded-full text-xs font-semibold
+                {% if flow.congestion_color == 'emerald' %}bg-emerald-100 text-emerald-700
+                {% elif flow.congestion_color == 'yellow' %}bg-yellow-100 text-yellow-700
+                {% elif flow.congestion_color == 'orange' %}bg-orange-100 text-orange-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                {{ flow.congestion }}
+            </span>
+        </div>
+
+        <!-- Jam bar -->
+        <div class="w-full bg-slate-100 rounded-full h-3 mb-4">
+            <div class="h-3 rounded-full transition-all
+                {% if flow.congestion_color == 'emerald' %}bg-emerald-500
+                {% elif flow.congestion_color == 'yellow' %}bg-yellow-500
+                {% elif flow.congestion_color == 'orange' %}bg-orange-500
+                {% else %}bg-red-500{% endif %}"
+                style="width: {{ flow.jam_bar_width }}%"></div>
+        </div>
+        <p class="text-xs text-slate-400 mb-4 text-right">Impact score: {{ flow.jam_factor }}/10</p>
+
+        <!-- Weather conditions driving traffic -->
+        <div class="rounded-xl bg-slate-50 border border-slate-100 p-3 mb-4">
+            <div class="flex items-center gap-3 mb-3">
+                <img src="{{ flow.weather_icon }}" alt="{{ flow.weather_desc }}" class="h-10 w-10">
+                <div>
+                    <p class="text-sm font-semibold text-slate-800">{{ flow.weather_desc }}</p>
+                    <p class="text-xs text-slate-500">Current road conditions</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <p class="text-xs text-slate-500">Temperature</p>
+                    <p class="text-base font-semibold text-slate-800">{{ flow.temperature|floatformat:1 }}°C</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500">Humidity</p>
+                    <p class="text-base font-semibold text-slate-800">{{ flow.humidity }}%</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500">Wind</p>
+                    <p class="text-base font-semibold text-slate-800">{{ flow.wind_speed }} m/s
+                        {% if flow.wind_direction %}<span class="text-xs text-slate-400">{{ flow.wind_direction }}°</span>{% endif %}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-500">Visibility</p>
+                    <p class="text-base font-semibold text-slate-800">{{ flow.visibility_km }} km</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rainfall impact -->
+        {% if flow.rain_1h is not None %}
+        <div class="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2 mb-4">
+            <span class="text-xl">🌧️</span>
+            <div>
+                <p class="text-xs text-slate-500">Rainfall (last 1h)</p>
+                <p class="text-base font-bold text-blue-700">{{ flow.rain_1h }} mm
+                    {% if flow.rain_1h > 10 %}<span class="text-xs text-red-600 ml-1">⚠ Heavy — expect severe delays</span>
+                    {% elif flow.rain_1h > 2 %}<span class="text-xs text-orange-600 ml-1">Moderate — expect delays</span>
+                    {% else %}<span class="text-xs text-yellow-600 ml-1">Light — minor impact</span>{% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if flow.road_closure %}
+        <div class="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2 mb-4">
+            <span>🚧</span>
+            <span class="text-sm font-medium text-red-700">Road closure detected in this area</span>
+        </div>
+        {% endif %}
+
+        <p class="text-xs text-slate-400 text-right">Updated: {{ flow.updated_at }}</p>
+
+        {% else %}
+        <p class="text-sm text-slate-400 text-center py-4">No traffic data available.</p>
+        {% endif %}
+    </div>
+</div>

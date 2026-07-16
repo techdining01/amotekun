@@ -14,7 +14,6 @@ def lga_performance_widget(request):
         "dashboard/widgets/lga_performance.html",
     )
 
-
 def national_hotspot_widget(request):
     return render(
         request,
@@ -25,5 +24,5 @@ def national_hotspot_widget(request):
 def live_platform_activity(request):
     return render(
         request,
-        "dashboard/widgets/live_platform_activity.html",
+        "dashboard/widgets/platform_activity.html",
     )

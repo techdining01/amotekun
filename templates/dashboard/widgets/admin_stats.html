@@ -1,11 +1,26 @@
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-
-    {% cotton statistics_card title="Incidents" value="0" subtitle="Today" value_color="text-red-600" %}{% endcotton %}
-
-    {% cotton statistics_card title="Patrols" value="0" subtitle="Active" value_color="text-blue-600" %}{% endcotton %}
-
-    {% cotton statistics_card title="Responders" value="0" subtitle="Online" value_color="text-green-600" %}{% endcotton %}
-
-    {% cotton statistics_card title="Facilities" value="0" subtitle="Connected" value_color="text-violet-600" %}{% endcotton %}
-
+<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+     hx-get="{% url 'admin-stats-widget' %}" hx-trigger="load, every 30s" hx-swap="outerHTML">
+    {% for stat in stats %}
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:shadow-md transition">
+        <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">{{ stat.label }}</p>
+        <p class="mt-2 text-3xl font-bold
+            {% if stat.color == 'red' %}text-red-600
+            {% elif stat.color == 'green' %}text-emerald-600
+            {% elif stat.color == 'blue' %}text-blue-600
+            {% else %}text-slate-800{% endif %}">
+            {{ stat.value }}
+        </p>
+        {% if stat.change %}
+        <p class="mt-1 text-xs {% if stat.change > 0 %}text-emerald-600{% else %}text-red-500{% endif %}">
+            {% if stat.change > 0 %}▲{% else %}▼{% endif %} {{ stat.change|floatformat:0 }}% vs yesterday
+        </p>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-span-4 animate-pulse grid grid-cols-4 gap-4">
+        {% for i in "1234" %}
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 h-24"></div>
+        {% endfor %}
+    </div>
+    {% endfor %}
 </div>

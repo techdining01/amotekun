@@ -1,0 +1,18 @@
+<div class="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    {% for camera in cameras %}
+    <div class="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition">
+        <div class="relative shrink-0">
+            <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-lg">📷</div>
+            <span class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white
+                {{ camera.is_online|yesno:'bg-emerald-500,bg-red-500' }}"></span>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold text-slate-800 truncate">{{ camera.name }}</p>
+            <p class="text-xs text-slate-500 mt-0.5 truncate">{{ camera.description|default:"No description" }}</p>
+        </div>
+        {% include "cotton/cameras/camera_status_badge.html" %}
+    </div>
+    {% empty %}
+    {% include "cotton/cameras/camera_empty.html" %}
+    {% endfor %}
+</div>

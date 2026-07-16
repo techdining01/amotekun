@@ -1,44 +1,118 @@
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.contrib.gis.geos import Point
+from django.core.cache import cache
 from rest_framework import viewsets
-from .models import Incident,  LGA
+from .models import Incident, State, LGA, Ward
 from .serializers import IncidentSerializer, LGASerializer
 from rest_framework.generics import ListAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from .forms import IncidentForm
+
+
+def get_lgas(request):
+    state_id = request.GET.get('state')
+    css = 'w-full px-4 py-2 border border-slate-200 rounded-lg'
+    if state_id:
+        cache_key = f"lgas_html:{state_id}"
+        html = cache.get(cache_key)
+        if not html:
+            try:
+                lgas = LGA.objects.filter(state_id=state_id).order_by('name')
+                options = '<option value="">Select an LGA</option>'
+                for lga in lgas:
+                    options += f'<option value="{lga.id}" data-centroid-url="/api/lga-centroid/{lga.id}/">{lga.name}</option>'
+                html = f'<select name="lga" id="id_lga" class="{css}" hx-get="/api/get-wards/" hx-target="#ward-select-wrapper" hx-swap="innerHTML" hx-trigger="change" onchange="onLgaChange(this)">{options}</select>'
+                cache.set(cache_key, html, 3600)
+            except Exception:
+                html = None
+        if html:
+            return HttpResponse(html)
+    return HttpResponse(f'<select name="lga" id="id_lga" class="{css}" hx-get="/api/get-wards/" hx-target="#ward-select-wrapper" hx-swap="innerHTML" hx-trigger="change"><option value="">Select an LGA</option></select>')
+
+
+def get_wards(request):
+    lga_id = request.GET.get('lga')
+    css = 'w-full px-4 py-2 border border-slate-200 rounded-lg'
+    if lga_id:
+        cache_key = f"wards_html:{lga_id}"
+        html = cache.get(cache_key)
+        if not html:
+            try:
+                wards = Ward.objects.filter(lga_id=lga_id).order_by('name')
+                options = '<option value="">Select a Ward</option>'
+                for ward in wards:
+                    options += f'<option value="{ward.id}">{ward.name}</option>'
+                html = f'<select name="ward" id="id_ward" class="{css}">{options}</select>'
+                cache.set(cache_key, html, 3600)
+            except Exception:
+                html = None
+        if html:
+            return HttpResponse(html)
+    return HttpResponse(f'<select name="ward" id="id_ward" class="{css}"><option value="">Select a Ward</option></select>')
 
 
 def incident_create_view(request):
-    """HTMX view for creating incidents"""
+    req_type = request.GET.get('type', '')  # 'emergency', 'support', 'evidence', or ''
+    is_support = req_type == 'support'
+
     if request.method == 'POST':
-        latitude = request.POST.get('latitude')
-        longitude = request.POST.get('longitude')
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        report_type = request.POST.get('report_type')
-        
-        if latitude and longitude:
-            try:
-                lng = float(longitude)
-                lat = float(latitude)
-                point = Point(lng, lat, srid=4326)
-                
-                state_name, lga_name = get_location_from_point(point)
-                
-                incident = Incident.objects.create(
-                    title=title,
-                    description=description,
-                    report_type=report_type,
-                    state=state_name or 'Unknown',
-                    lga=lga_name or 'Unknown',
-                    geometry=point
-                )
-                from django.http import HttpResponse
-                return HttpResponse(status=204, headers={'HX-Trigger': 'incidentAdded'})
-            except (ValueError, TypeError):
-                pass
-    
-    return render(request, 'cotton/incident_form_modal.html')
+        form = IncidentForm(request.POST, request.FILES)
+        if form.is_valid():
+            incident = form.save(commit=False)
+            incident.reporter = request.user if request.user.is_authenticated else None
+
+            latitude = form.cleaned_data.get('latitude')
+            longitude = form.cleaned_data.get('longitude')
+            state_obj = form.cleaned_data.get('state')
+            lga_obj = form.cleaned_data.get('lga')
+
+            if latitude is not None and longitude is not None:
+                try:
+                    incident.geometry = Point(float(longitude), float(latitude), srid=4326)
+                except (ValueError, TypeError):
+                    pass
+
+            if not incident.geometry:
+                if lga_obj and lga_obj.geometry:
+                    incident.geometry = lga_obj.geometry.centroid
+                elif state_obj and state_obj.geometry:
+                    incident.geometry = state_obj.geometry.centroid
+                else:
+                    incident.geometry = Point(3.3792, 6.5244, srid=4326)
+
+            if state_obj:
+                incident.state = state_obj.name
+            else:
+                state_name, _ = get_location_from_point(incident.geometry)
+                incident.state = state_name or 'Unknown'
+
+            if lga_obj:
+                incident.lga = lga_obj.name
+            else:
+                _, lga_name = get_location_from_point(incident.geometry)
+                incident.lga = lga_name or 'Unknown'
+
+            incident.save()
+            return HttpResponse('', status=204, headers={'HX-Trigger': 'incidentAdded'})
+    else:
+        initial = {}
+        if req_type == 'emergency':
+            initial['report_type'] = 'crime'
+        form = IncidentForm(initial=initial)
+
+    modal_title = {
+        'emergency': '🚨 Report Emergency',
+        'support':   '🤝 Request Support',
+        'evidence':  '📸 Upload Evidence',
+    }.get(req_type, '📝 Report Incident')
+
+    return render(request, 'reports/incident_modal.html', {
+        'form': form,
+        'modal_title': modal_title,
+        'is_support': is_support,
+    })
 
 
 def get_location_from_point(point):

@@ -1,9 +1,36 @@
-<div class="space-y-3">
-
-    <div class="rounded-xl border bg-white p-4">
-
-        No incidents reported.
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/30">
+        <h3 class="font-semibold text-slate-800">Recent Incidents</h3>
+        <span class="flex items-center gap-1.5 text-xs font-medium text-red-600">
+            <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse shadow-sm shadow-red-500/50"></span> Live
+        </span>
     </div>
-
+    <div class="divide-y divide-slate-100 max-h-96 overflow-y-auto">
+        {% for incident in incidents %}
+        <div class="flex items-start gap-3 px-5 py-4 hover:bg-slate-50 transition-colors duration-150">
+            <span class="mt-1.5 h-2.5 w-2.5 rounded-full shrink-0
+                {% if incident.priority == 'critical' %}bg-red-500
+                {% elif incident.priority == 'high' %}bg-orange-400
+                {% elif incident.priority == 'medium' %}bg-yellow-400
+                {% else %}bg-slate-300{% endif %}"></span>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-semibold text-slate-800 truncate">{{ incident.title }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ incident.lga }}, {{ incident.state }}</p>
+                <p class="text-xs text-slate-400 mt-1">{{ incident.created_at|timesince }} ago · {{ incident.report_type|title }}</p>
+            </div>
+            <span class="rounded-full px-2 py-0.5 text-xs font-semibold shrink-0
+                {% if incident.status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% elif incident.status == 'dispatched' %}bg-blue-100 text-blue-700
+                {% elif incident.status == 'resolved' %}bg-emerald-100 text-emerald-700
+                {% else %}bg-slate-100 text-slate-600{% endif %}">
+                {{ incident.status|title }}
+            </span>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-12 text-center">
+            <span class="text-3xl mb-3">✅</span>
+            <p class="text-sm text-slate-500">No incidents reported.</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>

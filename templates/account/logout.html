@@ -1,26 +1,48 @@
 {% extends "account/base_account.html" %}
+{% load i18n %}
 
-{% block title %}Logout | Amotekun{% endblock %}
+{% block title %}Sign Out | Amotekun{% endblock %}
 {% block heading %}Sign Out{% endblock %}
-{% block subheading %}Are you sure you want to sign out of your account?{% endblock %}
+{% block subheading %}End your current session securely.{% endblock %}
 
 {% block content %}
-    {% cotton auth_card title="Sign Out" subtitle="You will need to sign in again to access your account." %}
-        <form method="post" class="space-y-5">
-            {% csrf_token %}
-            
-            <p class="text-center text-slate-300">
-                Signing out will end your current session. You can always sign back in later.
-            </p>
-            
-            <div class="grid gap-3 pt-2">
-                {% cotton button type="submit" variant="destructive" %}
-                    Sign Out
-                {% endcotton %}
-                <a href="{% url 'home' %}" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-900/50 hover:border-slate-500 px-4 py-3.5 text-sm font-semibold text-slate-100 transition-all">
-                    Cancel
-                </a>
-            </div>
-        </form>
-    {% endcotton %}
+<div class="w-full rounded-2xl border border-slate-800 bg-slate-900/60 backdrop-blur-sm p-8 shadow-2xl">
+
+    <div class="flex flex-col items-center text-center mb-8">
+        <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-red-500/10 border border-red-500/20 mb-4">
+            <svg class="w-8 h-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+            </svg>
+        </div>
+        <p class="text-slate-300 text-sm leading-relaxed max-w-xs">
+            You are about to sign out of the Amotekun Intelligence Platform. Your session will be ended securely.
+        </p>
+    </div>
+
+    <form method="post" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <div class="space-y-3">
+            <button type="submit"
+                    class="w-full flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 active:bg-red-700 px-4 py-3.5 text-sm font-semibold text-white transition-all duration-200 shadow-lg shadow-red-600/20">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Yes, Sign Me Out
+            </button>
+            <a href="{% url 'admin-dashboard' %}"
+               class="w-full flex items-center justify-center rounded-xl border border-slate-700 bg-slate-800/50 hover:border-slate-500 hover:bg-slate-800 px-4 py-3.5 text-sm font-semibold text-slate-200 transition-all duration-200">
+                Cancel — Stay Signed In
+            </a>
+        </div>
+    </form>
+
+    <div class="mt-6 pt-6 border-t border-slate-800 text-center">
+        <p class="text-xs text-slate-500">
+            Need emergency assistance? <a href="tel:112" class="text-red-400 hover:text-red-300 font-semibold">Call 112</a>
+        </p>
+    </div>
+
+</div>
 {% endblock %}

@@ -1,13 +1,15 @@
 <div class="relative p-6">
 
     {% if loading %}
-        {% include "cotton/dashboard/widget_loading.html" %}
+        {% include "cotton/dashboard_widgets/widget_loading.html" %}
     {% elif error %}
-        {% include "cotton/dashboard/widget_error.html" %}
+        {% include "cotton/dashboard_widgets/widget_error.html" %}
     {% elif empty %}
-        {% include "cotton/dashboard/widget_empty.html" %}
+        {% include "cotton/dashboard_widgets/widget_empty.html" %}
     {% else %}
-        {{ slot }}
+        <div class="animate-fade-in">
+            {{ slot }}
+        </div>
     {% endif %}
 
 </div>

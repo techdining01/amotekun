@@ -1,0 +1,21 @@
+<div class="flex items-start gap-3 px-5 py-4 hover:bg-slate-50 transition border-b border-slate-100 last:border-0
+    {% if not notification.is_read %}bg-sky-50/60{% endif %}">
+    <div class="mt-0.5 h-9 w-9 rounded-full flex items-center justify-center shrink-0
+        {% if notification.notification_type == 'incident' %}bg-red-100 text-red-600
+        {% elif notification.notification_type == 'dispatch' %}bg-orange-100 text-orange-600
+        {% elif notification.notification_type == 'patrol' %}bg-blue-100 text-blue-600
+        {% else %}bg-slate-100 text-slate-600{% endif %}">
+        {% if notification.notification_type == 'incident' %}🚨
+        {% elif notification.notification_type == 'dispatch' %}🚓
+        {% elif notification.notification_type == 'patrol' %}🛡
+        {% else %}🔔{% endif %}
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-slate-800 truncate">{{ notification.title }}</p>
+        <p class="text-xs text-slate-500 mt-0.5 line-clamp-2">{{ notification.message }}</p>
+        <p class="text-xs text-slate-400 mt-1">{{ notification.created_at|timesince }} ago</p>
+    </div>
+    {% if not notification.is_read %}
+    <span class="mt-1.5 h-2 w-2 rounded-full bg-sky-500 shrink-0"></span>
+    {% endif %}
+</div>

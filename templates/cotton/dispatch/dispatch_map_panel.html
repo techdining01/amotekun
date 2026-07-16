@@ -1,0 +1,50 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
+    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+
+        <h3 class="font-semibold text-slate-800">Dispatch Map</h3>
+
+        <span class="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+        </span>
+
+    </div>
+
+    <div class="relative h-[500px] bg-slate-50">
+
+        {% include "cotton/maps/leaflet_map.html" with
+            map_id="dispatch-map"
+            height="500"
+            layers=dispatches
+            tile_layer="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' %}
+
+        <div class="absolute bottom-4 left-4 z-[1000] bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-3 max-w-xs">
+
+            <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Legend</div>
+
+            <div class="space-y-1.5 text-xs text-slate-600">
+
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-red-500"></span> Critical
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-orange-400"></span> High
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-yellow-400"></span> Medium
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <span class="h-2.5 w-2.5 rounded-full bg-blue-500"></span> Active Dispatch
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

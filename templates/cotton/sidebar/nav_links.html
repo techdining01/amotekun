@@ -1,0 +1,190 @@
+{% load cotton %}
+{% cotton sidebar/nav / %}
+
+{# ── Shared by all roles ── #}
+<div class="nav-section">My Dashboard</div>
+
+{% if user.role == "CITIZEN" %}
+<a href="{% url 'citizen-dashboard' %}" class="nav-link">🏠 My Dashboard</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Safety Map</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">My Activity</div>
+<a href="#" class="nav-link">📄 My Reports</a>
+<a href="#" class="nav-link">🔔 My Alerts</a>
+<a href="#" class="nav-link">📍 Share Location</a>
+
+<div class="nav-section">Emergency</div>
+<a href="tel:112" class="nav-link">📞 Call 112</a>
+<a href="tel:17" class="nav-link">👮 Call Police (17)</a>
+<a href="tel:19" class="nav-link">🏥 Call Hospital (19)</a>
+{% endif %}
+
+
+{% if user.role == "RESPONDER" %}
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🏠 My Dashboard</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">Response</div>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch Console</a>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+
+<div class="nav-section">Support</div>
+<a href="{% url 'officer-dashboard' %}" class="nav-link">👮 Officers</a>
+{% endif %}
+
+
+{% if user.role == "PATROL_OFFICER" or user.role == "CCTV_OPERATOR" %}
+<a href="{% url 'officer-dashboard' %}" class="nav-link">🏠 My Dashboard</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">Field</div>
+<a href="#" class="nav-link">📋 My Assignments</a>
+<a href="#" class="nav-link">🕒 Incident History</a>
+
+<div class="nav-section">Support</div>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+{% endif %}
+
+
+{% if user.role == "DISPATCHER" or user.role == "EMERGENCY_OPERATOR" %}
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">🏠 Dispatch Console</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 New Incident</button>
+
+<div class="nav-section">Units</div>
+<a href="{% url 'police-dashboard' %}" class="nav-link">👮 Police Units</a>
+<a href="{% url 'amotekun-dashboard' %}" class="nav-link">🛡 Amotekun</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+<a href="{% url 'officer-dashboard' %}" class="nav-link">🔵 Officers</a>
+
+<div class="nav-section">Support</div>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+{% endif %}
+
+
+{% if user.role == "PATROL_SUPERVISOR" %}
+<a href="{% url 'police-dashboard' %}" class="nav-link">🏠 Police Command</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch Center</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">Field</div>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+<a href="{% url 'officer-dashboard' %}" class="nav-link">👮 Officers</a>
+
+<div class="nav-section">Intelligence</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+{% endif %}
+
+
+{% if user.role == "STATE_COMMANDER" or user.role == "LGA_COMMANDER" or user.role == "STATION_COMMANDER" %}
+<a href="{% url 'amotekun-dashboard' %}" class="nav-link">🏠 Command Center</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">Field</div>
+<a href="{% url 'police-dashboard' %}" class="nav-link">👮 Police</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+<a href="{% url 'officer-dashboard' %}" class="nav-link">🔵 Officers</a>
+
+<div class="nav-section">Intelligence</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+<a href="{% url 'ai-dashboard' %}" class="nav-link">🤖 AI Engine</a>
+{% endif %}
+
+
+{% if user.role == "ANALYST" %}
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">🏠 Intelligence Center</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<a href="{% url 'ai-dashboard' %}" class="nav-link">🤖 AI Engine</a>
+
+<div class="nav-section">Operations</div>
+<a href="{% url 'police-dashboard' %}" class="nav-link">👮 Police</a>
+<a href="{% url 'amotekun-dashboard' %}" class="nav-link">🛡 Amotekun</a>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+
+<div class="nav-section">Reports</div>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">➕ New Incident</button>
+{% endif %}
+
+
+{% if user.role == "AGENCY_STAFF" %}
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏠 Facilities</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">🚨 Report Incident</button>
+
+<div class="nav-section">Coordination</div>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+
+<div class="nav-section">Reports</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+{% endif %}
+
+
+{% if user.role == "AUDITOR" %}
+<a href="{% url 'auditor-dashboard' %}" class="nav-link">🏠 Audit Dashboard</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+
+<div class="nav-section">Administration</div>
+<a href="{% url 'admin-dashboard' %}" class="nav-link">⚙ Admin Panel</a>
+<a href="{% url 'super-admin-dashboard' %}" class="nav-link">🏛 Command Center</a>
+
+<div class="nav-section">Analytics</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Intelligence</a>
+<a href="{% url 'ai-dashboard' %}" class="nav-link">🤖 AI Center</a>
+{% endif %}
+
+
+{% if user.role == "PLATFORM_ADMIN" %}
+<a href="{% url 'admin-dashboard' %}" class="nav-link">🏠 Admin Panel</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<a href="{% url 'super-admin-dashboard' %}" class="nav-link">🏛 Command Center</a>
+
+<div class="nav-section">Operations</div>
+<a href="{% url 'police-dashboard' %}" class="nav-link">👮 Police</a>
+<a href="{% url 'amotekun-dashboard' %}" class="nav-link">🛡 Amotekun</a>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+
+<div class="nav-section">Intelligence</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+<a href="{% url 'ai-dashboard' %}" class="nav-link">🤖 AI Engine</a>
+<a href="{% url 'auditor-dashboard' %}" class="nav-link">🔍 Audit</a>
+
+<div class="nav-section">System</div>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">➕ New Incident</button>
+{% endif %}
+
+
+{% if user.role == "SUPER_ADMIN" %}
+<a href="{% url 'super-admin-dashboard' %}" class="nav-link">🏠 Command Center</a>
+<a href="{% url 'operations-map' %}" class="nav-link">🗺 Operations Map</a>
+<a href="{% url 'admin-dashboard' %}" class="nav-link">⚙ Admin Panel</a>
+
+<div class="nav-section">All Dashboards</div>
+<a href="{% url 'police-dashboard' %}" class="nav-link">👮 Police</a>
+<a href="{% url 'amotekun-dashboard' %}" class="nav-link">🛡 Amotekun</a>
+<a href="{% url 'dispatcher-dashboard' %}" class="nav-link">📡 Dispatch</a>
+<a href="{% url 'responder-dashboard' %}" class="nav-link">🚑 Responders</a>
+<a href="{% url 'officer-dashboard' %}" class="nav-link">🔵 Officers</a>
+<a href="{% url 'facility-dashboard' %}" class="nav-link">🏥 Facilities</a>
+<a href="{% url 'citizen-dashboard' %}" class="nav-link">👤 Citizen</a>
+
+<div class="nav-section">Intelligence</div>
+<a href="{% url 'analyst-dashboard' %}" class="nav-link">📊 Analytics</a>
+<a href="{% url 'ai-dashboard' %}" class="nav-link">🤖 AI Engine</a>
+<a href="{% url 'auditor-dashboard' %}" class="nav-link">🔍 Audit</a>
+
+<div class="nav-section">Reports</div>
+<button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML" class="nav-link text-left w-full cursor-pointer">➕ New Incident</button>
+{% endif %}

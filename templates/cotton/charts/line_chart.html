@@ -1,0 +1,34 @@
+<div class="relative">
+    <canvas id="{{ chart_id|default:'line-chart' }}" class="{{ class|default:'h-72 w-full' }}"></canvas>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('{{ chart_id|default:"line-chart" }}');
+    if (!ctx || !window.Chart) return;
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ labels|safe|default:'[]' }},
+            datasets: [{
+                label: '{{ dataset_label|default:"Trend" }}',
+                data: {{ data|safe|default:'[]' }},
+                borderColor: 'rgba(14,165,233,1)',
+                backgroundColor: 'rgba(14,165,233,0.08)',
+                borderWidth: 2,
+                pointRadius: 3,
+                tension: 0.4,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>

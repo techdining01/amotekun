@@ -1,0 +1,644 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+{% load cotton %}
+
+{% block title %}Operations Map{% endblock %}
+{% block page_title %}Operations Map{% endblock %}
+{% block breadcrumb %}Dashboard / Operations Map{% endblock %}
+
+{% block sidebar %}
+{% cotton sidebar/nav_links / %}
+{% endblock %}
+
+{% block toolbar %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css"/>
+
+<style>
+#map-page { position: relative; margin: -12px -12px 0; }
+@media (min-width: 1024px) { #map-page { margin: -20px -20px 0; } }
+#ops-map {
+    height: calc(100vh - 130px);
+    min-height: 500px;
+    width: 100%;
+    border-radius: 0;
+    background: #e2e8f0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<style>
+/* ── Right layer panel ── */
+#layer-panel {
+    position: absolute;
+    top: 10px; right: 10px;
+    z-index: 1000;
+    width: 210px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    pointer-events: none;
+}
+.layer-group {
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.12);
+    padding: 8px 10px;
+    pointer-events: all;
+}
+.layer-group-title {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .07em; color: #64748b;
+    padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;
+    cursor: pointer; user-select: none;
+}
+.layer-group-title .lg-toggle {
+    font-size: 9px; color: #94a3b8; transition: transform .2s;
+    flex-shrink: 0; margin-left: 4px;
+}
+.layer-group-title.collapsed .lg-toggle { transform: rotate(-90deg); }
+.layer-group-body { margin-top: 5px; }
+.layer-group-body.hidden { display: none; }
+.layer-row {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 12px; color: #334155; cursor: pointer;
+    border-radius: 5px; padding: 3px 4px;
+    transition: background .12s;
+}
+.layer-row:hover { background: #f8fafc; }
+.layer-row input[type=checkbox] { accent-color: #2563eb; cursor: pointer; }
+.layer-row label { cursor: pointer; flex: 1; margin-left: 6px; user-select: none; }
+
+/* ── Base layer selector ── */
+.base-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 4px; font-size: 12px; color: #334155;
+    cursor: pointer; border-radius: 5px; transition: background .12s;
+}
+.base-row:hover { background: #f8fafc; }
+.base-row input[type=radio] { accent-color: #2563eb; cursor: pointer; }
+.base-row label { cursor: pointer; flex: 1; user-select: none; }
+
+/* ── Mobile: panel scrollable, groups collapsed by default ── */
+@media (max-width: 767px) {
+    #layer-panel {
+        top: auto; bottom: 10px; right: 6px; left: 6px; width: auto;
+        max-height: 55vh; overflow-y: auto;
+        flex-direction: row; flex-wrap: wrap; gap: 5px;
+    }
+    .layer-group { flex: 1 1 calc(50% - 5px); min-width: 130px; }
+    .layer-group-body.mobile-collapsed { display: none; }
+}
+
+/* ── Info panel ── */
+#info-panel {
+    position: absolute; top: 10px; left: 10px; z-index: 1000;
+    width: 290px; max-height: calc(100vh - 200px);
+    background: rgba(255,255,255,0.97); backdrop-filter: blur(8px);
+    border-radius: 12px; box-shadow: 0 4px 24px rgba(0,0,0,.15);
+    overflow-y: auto; display: none; font-size: 13px;
+}
+#info-panel.open { display: block; }
+.info-row { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f1f5f9; }
+.info-row:last-child { border: none; }
+.info-label { color: #64748b; }
+.info-val { font-weight: 600; color: #1e293b; text-align: right; max-width: 150px; }
+.facility-item { padding: 5px 0; border-bottom: 1px solid #f1f5f9; }
+.facility-item:last-child { border: none; }
+
+/* ── Pulsing user location marker ── */
+@keyframes pulse-ring {
+    0%   { transform: scale(0.5); opacity: 0.8; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+.user-marker-wrap { position: relative; width: 20px; height: 20px; }
+.user-marker-dot {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #2563eb; border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(37,99,235,.5);
+    z-index: 2;
+}
+.user-marker-ring {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: rgba(37,99,235,.35);
+    animation: pulse-ring 1.6s ease-out infinite;
+    z-index: 1;
+}
+.user-marker-ring2 {
+    animation-delay: 0.8s;
+}
+/* -- Beating incident marker -- */
+@keyframes inc-beat {
+    0%,100% { transform: translate(-50%,-50%) scale(1); }
+    50%      { transform: translate(-50%,-50%) scale(1.5); }
+}
+@keyframes inc-ring {
+    0%   { transform: translate(-50%,-50%) scale(1); opacity: 0.7; }
+    100% { transform: translate(-50%,-50%) scale(2.8); opacity: 0; }
+}
+.inc-dot {
+    position: absolute; top: 50%; left: 50%;
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2.5px solid white;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    animation: inc-beat 1.2s ease-in-out infinite;
+    z-index: 2;
+}
+.inc-ring {
+    position: absolute; top: 50%; left: 50%;
+    width: 14px; height: 14px; border-radius: 50%;
+    animation: inc-ring 1.2s ease-out infinite;
+    z-index: 1;
+}
+.inc-ring2 { animation-delay: 0.6s; }
+</style>
+
+<div id="map-page" class="relative">
+    <div id="ops-map"></div>
+
+    <!-- Right: 3-group layer panel -->
+    <div id="layer-panel">
+
+        <!-- Group 1: Base Maps -->
+        <div class="layer-group">
+            <div class="layer-group-title" onclick="toggleGroup(this)">
+                <span>🗺 Base Map</span><span class="lg-toggle">▼</span>
+            </div>
+            <div class="layer-group-body mobile-collapsed">
+                <div class="base-row"><input type="radio" name="base" id="b-osm" checked onchange="setBase('osm')"><label for="b-osm">OpenStreetMap</label></div>
+                <div class="base-row"><input type="radio" name="base" id="b-sat" onchange="setBase('satellite')"><label for="b-sat">Satellite</label></div>
+                <div class="base-row"><input type="radio" name="base" id="b-topo" onchange="setBase('topo')"><label for="b-topo">Topo</label></div>
+            </div>
+        </div>
+
+        <!-- Group 2: Security Layers -->
+        <div class="layer-group">
+            <div class="layer-group-title" onclick="toggleGroup(this)">
+                <span>🚨 Security</span><span class="lg-toggle">▼</span>
+            </div>
+            <div class="layer-group-body mobile-collapsed">
+                <div class="layer-row"><input type="checkbox" id="l-incidents" checked onchange="toggleLayer('incidents',this)"><label for="l-incidents">🚨 Incidents</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-facilities" checked onchange="toggleLayer('facilities',this)"><label for="l-facilities">🏥 Facilities</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-states" onchange="toggleLayer('states',this)"><label for="l-states">🗺 States</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-lgas" onchange="toggleLayer('lgas',this)"><label for="l-lgas">📍 LGAs</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-wards" onchange="toggleLayer('wards',this)"><label for="l-wards">🏘 Wards</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-location" onchange="toggleLayer('user',this)"><label for="l-location">📡 My Location</label></div>
+            </div>
+        </div>
+
+        <!-- Group 3: Traffic Layers -->
+        <div class="layer-group">
+            <div class="layer-group-title" onclick="toggleGroup(this)">
+                <span>🚦 Traffic</span><span class="lg-toggle">▼</span>
+            </div>
+            <div class="layer-group-body mobile-collapsed">
+                <div class="layer-row"><input type="checkbox" id="l-trafficflow" checked onchange="toggleLayer('traffic',this)"><label for="l-trafficflow">🛣 Traffic Flow</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-trafficinc" checked onchange="toggleLayer('trafficInc',this)"><label for="l-trafficinc">⚠️ Incidents</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-trafficcam" onchange="toggleLayer('trafficCam',this)"><label for="l-trafficcam">📷 Traffic Cams</label></div>
+            </div>
+        </div>
+
+        <!-- Group 4: Weather Layers -->
+        <div class="layer-group">
+            <div class="layer-group-title" onclick="toggleGroup(this)">
+                <span>🌤 Weather</span><span class="lg-toggle">▼</span>
+            </div>
+            <div class="layer-group-body mobile-collapsed">
+                <div class="layer-row"><input type="checkbox" id="l-wpoints" onchange="toggleLayer('weatherPts',this)"><label for="l-wpoints">🌡 Obs. Points</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-precip" onchange="toggleLayer('precip',this)"><label for="l-precip">🌧 Precipitation</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-clouds" onchange="toggleLayer('clouds',this)"><label for="l-clouds">☁ Clouds</label></div>
+                <div class="layer-row"><input type="checkbox" id="l-wind" onchange="toggleLayer('wind',this)"><label for="l-wind">💨 Wind</label></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Left: Incident info panel -->
+    <div id="info-panel" class="p-4">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold text-slate-800 text-sm" id="panel-title">Incident Details</h3>
+            <button onclick="closePanel()" class="text-slate-400 hover:text-slate-600 text-base leading-none">✕</button>
+        </div>
+        <div id="panel-body"></div>
+    </div>
+
+    <!-- Legend: top on mobile, bottom-center on desktop -->
+    <div id="map-legend" style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);z-index:1000;pointer-events:none;max-width:calc(100vw - 20px)">
+        <style>
+        @media (max-width:767px) {
+            #map-legend { bottom:auto !important; top:8px !important; left:6px !important; right:6px !important; transform:none !important; max-width:none !important; }
+            #map-legend-inner { overflow-x:auto; flex-wrap:nowrap !important; justify-content:flex-start !important; border-radius:12px !important; }
+        }
+        </style>
+        <div id="map-legend-inner" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.96);backdrop-filter:blur(10px);border-radius:30px;box-shadow:0 2px 12px rgba(0,0,0,.15);padding:5px 10px;pointer-events:all;flex-wrap:wrap;justify-content:center">
+
+            <!-- Facilities -->
+            <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;padding-right:2px">Facilities</span>
+            <div title="Police" style="display:flex;align-items:center;gap:3px;background:#eff6ff;border-radius:20px;padding:2px 7px 2px 4px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#1d4ed8;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">🚔</div>
+                <span style="font-size:10px;font-weight:600;color:#1d4ed8">Police</span>
+            </div>
+            <div title="Amotekun" style="display:flex;align-items:center;gap:3px;background:#f0fdf4;border-radius:20px;padding:2px 7px 2px 4px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#15803d;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">🛡</div>
+                <span style="font-size:10px;font-weight:600;color:#15803d">Amotekun</span>
+            </div>
+            <div title="Hospital" style="display:flex;align-items:center;gap:3px;background:#fdf2f8;border-radius:20px;padding:2px 7px 2px 4px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#ec4899;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">🏥</div>
+                <span style="font-size:10px;font-weight:600;color:#ec4899">Hospital</span>
+            </div>
+            <div title="Road Safety" style="display:flex;align-items:center;gap:3px;background:#fffbeb;border-radius:20px;padding:2px 7px 2px 4px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#f59e0b;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">🚦</div>
+                <span style="font-size:10px;font-weight:600;color:#b45309">Road Safety</span>
+            </div>
+            <div title="Fire Station" style="display:flex;align-items:center;gap:3px;background:#fef2f2;border-radius:20px;padding:2px 7px 2px 4px">
+                <div style="width:20px;height:20px;border-radius:50%;background:#dc2626;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;font-size:10px">🚒</div>
+                <span style="font-size:10px;font-weight:600;color:#dc2626">Fire</span>
+            </div>
+
+            <div style="width:1px;height:16px;background:#e2e8f0;margin:0 2px"></div>
+
+            <!-- Incidents -->
+            <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;padding-right:2px">Incidents</span>
+            <div title="Critical" style="display:flex;align-items:center;gap:3px">
+                <div style="width:11px;height:11px;border-radius:50%;background:#ef4444;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+                <span style="font-size:10px;color:#64748b">Critical</span>
+            </div>
+            <div title="High" style="display:flex;align-items:center;gap:3px">
+                <div style="width:11px;height:11px;border-radius:50%;background:#f97316;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+                <span style="font-size:10px;color:#64748b">High</span>
+            </div>
+            <div title="Medium" style="display:flex;align-items:center;gap:3px">
+                <div style="width:11px;height:11px;border-radius:50%;background:#eab308;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+                <span style="font-size:10px;color:#64748b">Medium</span>
+            </div>
+            <div title="Low" style="display:flex;align-items:center;gap:3px">
+                <div style="width:11px;height:11px;border-radius:50%;background:#94a3b8;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,.3)"></div>
+                <span style="font-size:10px;color:#64748b">Low</span>
+            </div>
+
+            <div style="width:1px;height:16px;background:#e2e8f0;margin:0 2px"></div>
+
+            <!-- Traffic -->
+            <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;padding-right:2px">Traffic</span>
+            <div style="display:flex;align-items:center;gap:3px"><div style="width:22px;height:4px;border-radius:2px;background:#22c55e"></div><span style="font-size:10px;color:#64748b">Free</span></div>
+            <div style="display:flex;align-items:center;gap:3px"><div style="width:22px;height:4px;border-radius:2px;background:#eab308"></div><span style="font-size:10px;color:#64748b">Mod</span></div>
+            <div style="display:flex;align-items:center;gap:3px"><div style="width:22px;height:4px;border-radius:2px;background:#f97316"></div><span style="font-size:10px;color:#64748b">Heavy</span></div>
+            <div style="display:flex;align-items:center;gap:3px"><div style="width:22px;height:4px;border-radius:2px;background:#ef4444"></div><span style="font-size:10px;color:#64748b">Severe</span></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
+
+<script>
+(function () {
+    const OWM_KEY = "{{ owm_api_key|default:'' }}";
+
+    // Initialize map after DOM is ready
+    function initOpsMap() {
+        /* ── Map ── */
+        const mapContainer = document.getElementById('ops-map');
+        if (!mapContainer) return;
+        const map = L.map('ops-map', { zoomControl: true }).setView([9.0, 8.0], 6);
+
+        // Try GPS first, pan to real location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                pos => map.setView([pos.coords.latitude, pos.coords.longitude], 10),
+                ()  => {} // denied — stay on Nigeria default
+            );
+        }
+
+    /* ── Base layers ── */
+    const bases = {
+        osm:       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'© OpenStreetMap' }),
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom:19, attribution:'© Esri' }),
+        topo:      L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom:17, attribution:'© OpenTopoMap' }),
+    };
+    bases.osm.addTo(map);
+    let currentBase = bases.osm;
+
+    window.setBase = function(name) {
+        map.removeLayer(currentBase);
+        currentBase = bases[name];
+        currentBase.addTo(map);
+        map.invalidateSize();
+    };
+
+    /* ── Overlay groups ── */
+    const layers = {
+        incidents:   L.markerClusterGroup({ chunkedLoading: true }),
+        facilities:  L.markerClusterGroup({ chunkedLoading: true }),  // Use MarkerCluster for facilities too!
+        traffic:     L.layerGroup(),   // road flow lines
+        trafficInc:  L.layerGroup(),   // traffic incidents
+        trafficCam:  L.layerGroup(),   // traffic cameras
+        weatherPts:  L.layerGroup(),   // observation points
+        precip:      L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png${OWM_KEY?'?appid='+OWM_KEY:''}`, { maxZoom:19, opacity:0.55, attribution:'© OpenWeatherMap' }),
+        clouds:      L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png${OWM_KEY?'?appid='+OWM_KEY:''}`,       { maxZoom:19, opacity:0.45, attribution:'© OpenWeatherMap' }),
+        wind:        L.tileLayer(`https://tile.openweathermap.org/map/wind_new/{z}/{x}/{y}.png${OWM_KEY?'?appid='+OWM_KEY:''}`,         { maxZoom:19, opacity:0.55, attribution:'© OpenWeatherMap' }),
+        states:      L.layerGroup(),
+        lgas:        L.layerGroup(),
+        wards:       L.layerGroup(),
+        user:        L.layerGroup(),
+        route:       L.layerGroup(),
+    };
+
+    // Default on
+    ['incidents','facilities','traffic','trafficInc'].forEach(k => layers[k].addTo(map));
+    layers.route.addTo(map);
+
+    window.toggleLayer = function(name, cb) {
+        if (cb.checked) {
+            layers[name].addTo(map);
+            if (name === 'states' && !layers.states._loaded) loadBoundary('/static/data/state.geojson', 'states', '#6366f1', f => f.properties.shapeName || '');
+            if (name === 'lgas'   && !layers.lgas._loaded)   loadBoundary('/static/data/geoBoundaries-NGA-ADM2.geojson', 'lgas', '#f59e0b', f => f.properties.shapeName || f.properties.name || '');
+            if (name === 'wards'  && !layers.wards._loaded)  loadBoundary('/static/data/NGA_Ward_Boundaries.geojson', 'wards', '#10b981', f => f.properties.wardname || f.properties.name || '');
+            if (name === 'user') locateMe();
+        } else {
+            map.removeLayer(layers[name]);
+        }
+    };
+
+    /* ── Helpers ── */
+    function circleIcon(color, size=12) {
+        return L.divIcon({ className:'', html:`<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.4)"></div>`, iconSize:[size,size], iconAnchor:[size/2,size/2] });
+    }
+    function haversine(a,b,c,d) {
+        const R=6371,dL=(c-a)*Math.PI/180,dG=(d-b)*Math.PI/180;
+        const x=Math.sin(dL/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dG/2)**2;
+        return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+    }
+    const pColor = { critical:'#ef4444', high:'#f97316', medium:'#eab308', low:'#94a3b8' };
+    const cColor = { free:'#22c55e', moderate:'#eab308', heavy:'#f97316', severe:'#ef4444', unknown:'#94a3b8' };
+    const wIcon  = { clear:'☀️', rain:'🌧', snow:'❄️', fog:'🌫', storm:'⛈', wind:'💨' };
+    const fEmoji = { police:'🚔', amotekun:'🛡', hospital:'🏥', road_safety:'🚦', fire_station:'🚒' };
+    const fColor = { police:'#1d4ed8', amotekun:'#15803d', hospital:'#ec4899', road_safety:'#f59e0b', fire_station:'#dc2626' };
+
+    function facilityIcon(type) {
+        const emoji = fEmoji[type] || '\u{1F4CD}';
+        const bg = fColor[type] || '#64748b';
+        return L.divIcon({
+            className: '',
+            html: `<div style="position:relative;width:28px;height:28px">
+                     <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+                       width:26px;height:26px;border-radius:50%;background:${bg};
+                       border:2.5px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);
+                       display:flex;align-items:center;justify-content:center;
+                       font-size:13px;line-height:1">${emoji}</div>
+                   </div>`,
+            iconSize: [28, 28], iconAnchor: [14, 14]
+        });
+    }
+
+    function incidentIcon(priority) {
+        const color = pColor[priority] || '#94a3b8';
+        return L.divIcon({
+            className: '',
+            html: `<div style="position:relative;width:22px;height:22px">
+                     <div class="inc-ring" style="background:${color};opacity:0.4"></div>
+                     <div class="inc-ring inc-ring2" style="background:${color};opacity:0.3"></div>
+                     <div class="inc-dot" style="background:${color}"></div>
+                   </div>`,
+            iconSize: [22, 22], iconAnchor: [11, 11]
+        });
+    }
+
+    /* ── Incidents ── */
+    let allFacilities = [];
+    fetch("{% url 'map-incidents' %}").then(r=>r.json()).then(data=>{
+        data.features.forEach(f=>{
+            const p=f.properties, [lng,lat]=f.geometry.coordinates;
+            const m=L.marker([lat,lng],{icon:incidentIcon(p.priority)});
+            m.on('click',()=>showPanel(lat,lng,p));
+            layers.incidents.addLayer(m);
+        });
+    }).catch(()=>{});
+
+    /* ── Facilities ── */
+    fetch("{% url 'map-facilities' %}").then(r=>r.json()).then(data=>{
+        allFacilities=data.features.map(f=>({name:f.properties.name,type:f.properties.type,lat:f.geometry.coordinates[1],lng:f.geometry.coordinates[0]}));
+        data.features.forEach(f=>{
+            const p=f.properties;
+            const [lng,lat]=[f.geometry.coordinates[0],f.geometry.coordinates[1]];
+            const m=L.marker([lat,lng],{icon:facilityIcon(p.type)});
+            let popup=`<div style="min-width:190px;font-size:12px;line-height:1.6">`;
+            popup+=`<div style="font-weight:700;font-size:13px;margin-bottom:5px">${fEmoji[p.type]||'\u{1F4CD}'} ${p.name}</div>`;
+            if(p.type==='hospital'){
+                const emerBadge=p.has_emergency
+                    ?'<span style="background:#ef4444;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">&#x26A0; Emergency</span>'
+                    :'<span style="background:#94a3b8;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px">No Emergency</span>';
+                const ambBadge=p.has_ambulance
+                    ?'<span style="background:#2563eb;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">&#x1F691; Ambulance</span>'
+                    :'<span style="background:#e2e8f0;color:#64748b;border-radius:4px;padding:1px 7px;font-size:10px">No Ambulance</span>';
+                const mortBadge=p.has_mortuary
+                    ?'<span style="background:#475569;color:#fff;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">&#x26B0; Mortuary</span>'
+                    :'';
+                popup+=`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px">${emerBadge}${ambBadge}${mortBadge}</div>`;
+                const row=(label,val)=>val?`<div><span style="color:#64748b">${label}:</span> <b>${val}</b></div>`:'';
+                popup+=row('Facility Type',p.facility_type);
+                popup+=row('Category',p.category);
+                popup+=row('Ownership',p.ownership);
+                if(p.status) popup+=`<div><span style="color:#64748b">Status:</span> <span style="color:${(p.status||'').toLowerCase()==='functional'?'#16a34a':'#ef4444'};font-weight:600">${p.status}</span></div>`;
+                popup+=row('Ward',p.ward);
+                popup+=row('LGA',p.lga);
+                popup+=row('State',p.state);
+            } else {
+                const typeLabel = fEmoji[p.type] ? `${fEmoji[p.type]} ${{police:'Police Station',amotekun:'Amotekun Station',road_safety:'Road Safety',fire_station:'Fire Station'}[p.type]||p.type}` : p.type;
+                popup+=`<div><span style="color:#64748b">Type:</span> <b>${typeLabel}</b></div>`;
+                if(p.address) popup+=`<div><span style="color:#64748b">Address:</span> ${p.address}</div>`;
+                if(p.lga)     popup+=`<div><span style="color:#64748b">LGA:</span> ${p.lga}</div>`;
+                if(p.state)   popup+=`<div><span style="color:#64748b">State:</span> ${p.state}</div>`;
+            }
+            popup+='</div>';
+            m.bindPopup(popup,{maxWidth:260});
+            layers.facilities.addLayer(m);
+        });
+    }).catch(()=>{});
+
+    /* ── Traffic ── */
+    fetch("{% url 'map-traffic' %}").then(r=>r.json()).then(data=>{
+        data.features.forEach(f=>{
+            const p=f.properties;
+            if(f.geometry.type==='LineString'){
+                const coords=f.geometry.coordinates.map(c=>[c[1],c[0]]);
+                const line=L.polyline(coords,{color:cColor[p.congestion]||'#94a3b8',weight:4,opacity:0.85});
+                line.bindTooltip(`${p.name||'Road'} — ${p.congestion}${p.speed?' · '+Math.round(p.speed)+' km/h':''}`,{sticky:true});
+                layers.traffic.addLayer(line);
+                // Floating label at midpoint
+                const mid=coords[Math.floor(coords.length/2)];
+                if(mid){
+                    const speedTxt=p.speed!=null?` · ${Math.round(p.speed)} km/h`:'';
+                    const congLabel=p.congestion?p.congestion.charAt(0).toUpperCase()+p.congestion.slice(1):'';
+                    const bgColor=cColor[p.congestion]||'#94a3b8';
+                    const lbl=L.marker(mid,{
+                        icon:L.divIcon({
+                            className:'',
+                            html:`<div style="background:${bgColor};color:white;border-radius:5px;padding:2px 6px;font-size:10px;font-weight:700;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25);pointer-events:none">${congLabel}${speedTxt}</div>`,
+                            iconAnchor:[0,0]
+                        }),
+                        interactive:false, zIndexOffset:-100
+                    });
+                    layers.traffic.addLayer(lbl);
+                }
+            } else if(f.geometry.type==='Point'){
+                const [lng,lat]=f.geometry.coordinates;
+                const m=L.marker([lat,lng],{icon:circleIcon('#f97316',11)});
+                m.bindPopup(`<b>⚠️ ${p.incident_type}</b><br>${p.road||''}<br><span style="color:#64748b;font-size:11px">${p.description}</span>`);
+                layers.trafficInc.addLayer(m);
+            }
+        });
+    }).catch(()=>{});
+
+    /* ── Weather points ── */
+    fetch("{% url 'map-weather' %}").then(r=>r.json()).then(data=>{
+        data.features.forEach(f=>{
+            const p=f.properties,[lng,lat]=f.geometry.coordinates;
+            const emoji=wIcon[p.condition]||'🌡️';
+            const tempStr=p.temp!=null?`${Math.round(p.temp)}°C`:'—';
+            const rainHint=p.condition==='rain'||(p.rain&&p.rain>0)?'<div style="color:#3b82f6;font-size:9px;font-weight:600;margin-top:1px">🌧 Rain</div>':'';
+            const areaLabel=p.area?`<div style="color:#475569;font-size:9px;font-weight:500;white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis">${p.area}</div>`:'';
+            const icon=L.divIcon({
+                className:'',
+                html:`<div style="display:flex;flex-direction:column;align-items:center;gap:1px">
+                        <div style="font-size:16px;line-height:1;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))">${emoji}</div>
+                        <div style="background:rgba(255,255,255,0.92);backdrop-filter:blur(4px);border-radius:5px;padding:1px 5px;font-size:10px;font-weight:700;color:#1e293b;box-shadow:0 1px 4px rgba(0,0,0,.18);white-space:nowrap">${tempStr}</div>
+                        ${rainHint}${areaLabel}
+                      </div>`,
+                iconSize:[60,52],iconAnchor:[30,26]
+            });
+            const m=L.marker([lat,lng],{icon});
+            const condTitle=(p.condition||'').charAt(0).toUpperCase()+(p.condition||'').slice(1);
+            const areaTitle=p.area?`<span style="color:#64748b;font-size:11px"> · ${p.area}</span>`:'';
+            m.bindPopup(`<b>${emoji} ${condTitle}</b>${areaTitle}<br>🌡 <b>${tempStr}</b>${p.wind!=null?'<br>💨 '+p.wind+' km/h':''}${p.rain!=null&&p.rain>0?'<br>🌧 '+p.rain+' mm':''}${p.description?'<br><span style="color:#64748b;font-size:11px">'+p.description+'</span>':''}`);
+            layers.weatherPts.addLayer(m);
+        });
+    }).catch(()=>{});
+
+    /* ── Boundaries (lazy) ── */
+    function loadBoundary(url, key, color, labelFn) {
+        if(layers[key]._loaded) return;
+        layers[key]._loaded=true;
+        fetch(url).then(r=>r.json()).then(data=>{
+            L.geoJSON(data,{style:{color,weight:1.5,fillOpacity:0.04,fillColor:color},onEachFeature:(f,l)=>l.bindTooltip(labelFn(f),{sticky:true})}).addTo(layers[key]);
+        }).catch(()=>{layers[key]._loaded=false;});
+    }
+
+    /* ── Incident panel ── */
+    function showPanel(lat, lng, p) {
+        const panel=document.getElementById('info-panel');
+        document.getElementById('panel-title').textContent=p.title||'Incident';
+        const sorted=allFacilities.map(f=>({...f,dist:haversine(lat,lng,f.lat,f.lng)})).sort((a,b)=>a.dist-b.dist).slice(0,5);
+        const color=pColor[p.priority]||'#94a3b8';
+        let html=`
+            <div class="info-row"><span class="info-label">Priority</span><span class="info-val"><span style="background:${color};color:white;padding:1px 8px;border-radius:4px;font-size:11px">${p.priority}</span></span></div>
+            <div class="info-row"><span class="info-label">Status</span><span class="info-val">${p.status}</span></div>
+            <div class="info-row"><span class="info-label">LGA</span><span class="info-val">${p.lga||'—'}</span></div>
+            <div class="info-row"><span class="info-label">State</span><span class="info-val">${p.state||'—'}</span></div>
+            <div class="info-row"><span class="info-label">Reported</span><span class="info-val">${p.created_at?p.created_at.slice(0,10):'—'}</span></div>
+            <div style="margin:8px 0 5px;font-weight:600;color:#1e293b;font-size:12px">📍 Nearest Facilities</div>`;
+        sorted.forEach(f=>{
+            html+=`<div class="facility-item"><div style="display:flex;justify-content:space-between;font-size:12px"><span>${fEmoji[f.type]||'📍'} ${f.name}</span><span style="color:#64748b">${f.dist.toFixed(1)} km</span></div><div style="color:#94a3b8;font-size:10px">${f.type}</div></div>`;
+        });
+        html+=`<button onclick="routeTo(${lat},${lng})" style="margin-top:8px;width:100%;background:#2563eb;color:white;border:none;border-radius:7px;padding:7px 0;font-size:12px;cursor:pointer;font-weight:600">🗺 Route to Incident</button>`;
+        if(sorted.length>0) html+=`<button onclick="routeTo(${lat},${lng},${sorted[0].lat},${sorted[0].lng})" style="margin-top:5px;width:100%;background:#16a34a;color:white;border:none;border-radius:7px;padding:7px 0;font-size:12px;cursor:pointer;font-weight:600">🏥 Route via Nearest Facility</button>`;
+        document.getElementById('panel-body').innerHTML=html;
+        panel.classList.add('open');
+        map.setView([lat,lng],Math.max(map.getZoom(),12));
+    }
+    window.closePanel=()=>document.getElementById('info-panel').classList.remove('open');
+
+    /* ── OSRM Routing ── */
+    window.routeTo=function(toLat,toLng,viaLat,viaLng){
+        layers.route.clearLayers();
+        if(!window._uLat){locateMe(()=>drawRoute(toLat,toLng,viaLat,viaLng));}
+        else{drawRoute(toLat,toLng,viaLat,viaLng);}
+    };
+    function drawRoute(toLat,toLng,viaLat,viaLng){
+        if(!window._uLat) return;
+        const wps=[[window._uLng,window._uLat]];
+        if(viaLat!=null) wps.push([viaLng,viaLat]);
+        wps.push([toLng,toLat]);
+        fetch(`https://router.project-osrm.org/route/v1/driving/${wps.map(c=>c.join(',')).join(';')}?overview=full&geometries=geojson`)
+            .then(r=>r.json()).then(data=>{
+                if(!data.routes||!data.routes[0]){fallback(toLat,toLng,viaLat,viaLng);return;}
+                const r=data.routes[0];
+                const line=L.polyline(r.geometry.coordinates.map(c=>[c[1],c[0]]),{color:'#2563eb',weight:5,opacity:0.9});
+                line.bindPopup(`🗺 ${(r.distance/1000).toFixed(1)} km · ~${Math.round(r.duration/60)} min`).openPopup();
+                layers.route.addLayer(line);
+                map.fitBounds(line.getBounds(),{padding:[40,40]});
+            }).catch(()=>fallback(toLat,toLng,viaLat,viaLng));
+    }
+    function fallback(toLat,toLng,viaLat,viaLng){
+        const pts=[[window._uLat,window._uLng]];
+        if(viaLat!=null) pts.push([viaLat,viaLng]);
+        pts.push([toLat,toLng]);
+        const line=L.polyline(pts,{color:'#2563eb',weight:4,dashArray:'8 6',opacity:0.8});
+        line.bindPopup('📍 Straight-line route').openPopup();
+        layers.route.addLayer(line);
+        map.fitBounds(line.getBounds(),{padding:[40,40]});
+    }
+
+    /* ── Locate me — pulsing marker ── */
+    window.locateMe=function(cb){
+        if(!navigator.geolocation) return;
+        navigator.geolocation.getCurrentPosition(pos=>{
+            window._uLat=pos.coords.latitude;
+            window._uLng=pos.coords.longitude;
+            layers.user.clearLayers();
+            const icon=L.divIcon({
+                className:'',
+                html:`<div class="user-marker-wrap">
+                        <div class="user-marker-ring"></div>
+                        <div class="user-marker-ring user-marker-ring2"></div>
+                        <div class="user-marker-dot"></div>
+                      </div>`,
+                iconSize:[20,20], iconAnchor:[10,10]
+            });
+            const m=L.marker([window._uLat,window._uLng],{icon,zIndexOffset:1000});
+            m.bindPopup(`<b>📡 Your Location</b><br><span style="font-size:11px;color:#64748b">${window._uLat.toFixed(5)}, ${window._uLng.toFixed(5)}</span>`).openPopup();
+            layers.user.addLayer(m);
+            if(!map.hasLayer(layers.user)) layers.user.addTo(map);
+            // tick the checkbox
+            const cb2=document.getElementById('l-location');
+            if(cb2) cb2.checked=true;
+            map.setView([window._uLat,window._uLng],13);
+            cb&&cb();
+        },()=>{});
+    };
+
+        // Invalidate size multiple times
+        const invalidate = () => map.invalidateSize();
+        setTimeout(invalidate, 100);
+        setTimeout(invalidate, 300);
+        setTimeout(invalidate, 500);
+        requestAnimationFrame(invalidate);
+
+        /* ── Layer group collapse ── */
+        window.toggleGroup = function(titleEl) {
+            const body = titleEl.nextElementSibling;
+            const collapsed = titleEl.classList.toggle('collapsed');
+            body.classList.toggle('hidden', collapsed);
+        };
+        // On desktop: expand all groups by default
+        if (window.innerWidth >= 768) {
+            document.querySelectorAll('.layer-group-body').forEach(b => b.classList.remove('mobile-collapsed'));
+        }
+    }
+
+    if (document.readyState === 'complete') {
+        initOpsMap();
+    } else {
+        document.addEventListener('DOMContentLoaded', initOpsMap);
+    }
+})();
+</script>
+{% endblock %}

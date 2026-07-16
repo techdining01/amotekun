@@ -13,3 +13,5 @@ def live_activity_widget(request):
         request,
         "dashboard/widgets/live_activity.html",
     )
+
+    

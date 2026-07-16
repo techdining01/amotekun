@@ -3,6 +3,8 @@
 
 {% block title %}Facility Dashboard{% endblock %}
 
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
+
 {% block page_title %}
 Emergency Facilities Management
 {% endblock %}
@@ -12,151 +14,115 @@ Operations / Facilities
 {% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-wrap items-center justify-between gap-4">
-
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
-
-        <h2 class="text-2xl font-bold">
-            Emergency Facilities
-        </h2>
-
-        <p class="text-slate-500">
-            Monitor police stations, Amotekun bases, hospitals, fire stations and emergency resources.
-        </p>
-
+        <h2 class="text-lg font-bold">Emergency Facilities</h2>
+        <p class="text-xs text-slate-500">Monitor police stations, Amotekun bases, hospitals and emergency resources.</p>
     </div>
-
-    <div class="flex gap-3">
-
-        <button class="rounded-xl bg-blue-600 px-5 py-3 text-white">
-            Register Facility
-        </button>
-
-        <button class="rounded-xl border border-slate-300 px-5 py-3">
-            Update Status
-        </button>
-
+    <div class="flex gap-2">
+        <a href="{% url 'admin-dashboard' %}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 transition">Register Facility</a>
+        <a href="{% url 'operations-map' %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 transition">Update Status</a>
     </div>
-
 </div>
-
 {% endblock %}
 
 {% block content %}
 
-<!-- ================= KPIs ================= -->
-
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-    {% cotton "dashboard/widget_stats"
-        title="Facilities"
-        value=total_facilities
-        icon="building"
-        color="blue" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Available Ambulances"
-        value=ambulances
-        icon="truck"
-        color="green" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Fire Stations"
-        value=firestations
-        icon="fire"
-        color="red" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Available Officers"
-        value=available_staff
-        icon="users"
-        color="yellow" %}
-
+<!-- KPIs -->
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    {% cotton dashboard_widgets/widget_stats_card title="Facilities" value={{total_facilities|default:0}} icon="shield" color="blue" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Available Ambulances" value={{ambulances|default:0}} icon="check-circle" color="green" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Fire Stations" value={{firestations|default:0}} icon="bell" color="red" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Available Officers" value={{available_staff|default:0}} icon="users" color="yellow" / %}
 </div>
 
-<!-- ================= MAP ================= -->
-
-<div class="mt-6">
-
-    {% cotton "dashboard/widget_map" %}
-
+<!-- MAP LINK -->
+<div class="mt-3">
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
-<!-- ================= FACILITIES ================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
+<!-- FACILITIES -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
     {% include "cotton/facilities/facility_grid.html" %}
-
     {% include "cotton/facilities/facility_table.html" %}
-
 </div>
 
-<!-- ================= RESOURCE STATUS ================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_chart"
-        title="Facility Capacity" %}
-
-    {% cotton "dashboard/widget_chart"
-        title="Resource Availability" %}
-
+<!-- RESOURCE STATUS -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Facility Capacity" / %}
+    {% cotton dashboard_widgets/widget_chart title="Resource Availability" / %}
 </div>
 
-<!-- ================= INCIDENTS ================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/incidents/incident_feed.html" %}
-
-    {% include "cotton/dispatch/dispatch_queue.html" %}
-
+<!-- INCIDENTS -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <h3 class="font-semibold text-slate-800">Live Incidents</h3>
+            <span class="flex items-center gap-1.5 text-xs font-medium text-red-600">
+                <span class="h-2 w-2 rounded-full bg-red-500 animate-pulse"></span> Live
+            </span>
+        </div>
+        <div class="divide-y divide-slate-100 max-h-[360px] overflow-y-auto">
+            {% for incident in recent_incidents %}
+            <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                <span class="mt-1.5 h-2 w-2 rounded-full shrink-0
+                    {% if incident.priority == 'critical' %}bg-red-500
+                    {% elif incident.priority == 'high' %}bg-orange-400
+                    {% else %}bg-slate-300{% endif %}"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ incident.title }}</p>
+                    <p class="text-xs text-slate-400">{{ incident.created_at|timesince }} ago</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-8">
+                <p class="text-sm text-slate-500">No active incidents.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+         hx-get="{% url 'recent-incidents-widget' %}" hx-trigger="load,every 20s" hx-swap="outerHTML">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100 bg-slate-50/30">
+            <h3 class="font-semibold text-slate-800">Active Dispatches</h3>
+        </div>
+        <div class="p-4 text-sm text-slate-400">Loading...</div>
+    </div>
 </div>
 
-<!-- ================= CAMERAS ================= -->
-
-<div class="mt-6">
-
+<!-- CAMERAS -->
+<div class="mt-3">
     {% include "cotton/cameras/camera_grid.html" %}
-
 </div>
 
-<!-- ================= WEATHER ================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/weather/weather_widget.html" %}
-
-    {% include "cotton/traffic/traffic_widget.html" %}
-
+<!-- WEATHER + TRAFFIC -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
-<!-- ================= AI ================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/ai/ai_summary.html" %}
-
-    {% include "cotton/ai/ai_recommendations.html" %}
-
+<!-- AI -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 p-4">
+        <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shrink-0">🤖</div>
+            <div class="flex-1">
+                <h3 class="font-semibold">AI Situation Summary</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">{{ ai.summary|default:"All facilities operating normally. No critical resource shortages detected." }}</p>
+            </div>
+        </div>
+    </div>
+    {% include "dashboard/widgets/ai_recommendations.html" %}
 </div>
 
-<!-- ================= TASKS ================= -->
-
-<div class="mt-6">
-
+<!-- TASKS -->
+<div class="mt-3">
     {% include "cotton/tasks/task_table.html" %}
-
 </div>
 
-<!-- ================= NOTIFICATIONS ================= -->
-
-<div class="mt-6">
-
-    {% include "cotton/notifications/notification_list.html" %}
-
+<!-- NOTIFICATIONS -->
+<div class="mt-3">
+    {% include "dashboard/widgets/notification_list.html" %}
 </div>
 
 {% endblock %}

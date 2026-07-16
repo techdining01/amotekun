@@ -1,15 +1,36 @@
-<div class="space-y-2">
-
-    <div class="flex justify-between">
-
-        <span>API Gateway</span>
-
-        <strong class="text-green-600">
-
-            Online
-
-        </strong>
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">API Health</h3>
+        <span class="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            All Systems Operational
+        </span>
     </div>
-
+    <div class="divide-y divide-slate-100">
+        {% for service in services %}
+        <div class="flex items-center justify-between px-6 py-3">
+            <span class="text-sm text-slate-700">{{ service.name }}</span>
+            <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-400">{{ service.latency }}ms</span>
+                <span class="flex items-center gap-1.5 text-xs font-semibold
+                    {% if service.status == 'ok' %}text-emerald-600
+                    {% elif service.status == 'degraded' %}text-yellow-600
+                    {% else %}text-red-600{% endif %}">
+                    <span class="h-2 w-2 rounded-full
+                        {% if service.status == 'ok' %}bg-emerald-500
+                        {% elif service.status == 'degraded' %}bg-yellow-500 animate-pulse
+                        {% else %}bg-red-500{% endif %}"></span>
+                    {{ service.status|title }}
+                </span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex items-center justify-between px-6 py-3">
+            <span class="text-sm text-slate-700">API Gateway</span>
+            <span class="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
+                <span class="h-2 w-2 rounded-full bg-emerald-500"></span> Online
+            </span>
+        </div>
+        {% endfor %}
+    </div>
 </div>

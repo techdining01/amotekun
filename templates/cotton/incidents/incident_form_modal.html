@@ -1,32 +1,75 @@
 <form
     method="post"
+    enctype="multipart/form-data"
     hx-post="{{ action }}"
-    hx-target="{{ target }}"
+    hx-target="{{ target|default:'#modal-root' }}"
     hx-swap="innerHTML"
-    class="space-y-6">
+    hx-encoding="multipart/form-data"
+    class="space-y-3 pt-1">
 
     {% csrf_token %}
 
-    {{ form }}
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Incident Title</label>
+        {{ form.title }}
+        {% for e in form.title.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+    </div>
 
-    <div class="flex justify-end gap-3">
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Type</label>
+            {{ form.report_type }}
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">State</label>
+            {{ form.state }}
+        </div>
+    </div>
 
-        <button
-            type="button"
-            @click="close()"
-            class="rounded-xl border border-slate-200 px-5 py-2">
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">LGA</label>
+            <div id="lga-select-wrapper">{{ form.lga }}</div>
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Ward</label>
+            <div id="ward-select-wrapper">{{ form.ward }}</div>
+        </div>
+    </div>
 
-            Cancel
+    <div>
+        <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Description</label>
+        {{ form.description }}
+    </div>
 
-        </button>
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Media Type</label>
+            {{ form.media_type }}
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Attach File</label>
+            {{ form.file }}
+            {% for e in form.file.errors %}<p class="text-xs text-red-500 mt-1">{{ e }}</p>{% endfor %}
+        </div>
+    </div>
 
-        <button
-            class="rounded-xl bg-blue-600 px-5 py-2 text-white hover:bg-blue-700">
+    <div class="grid grid-cols-2 gap-3">
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Latitude</label>
+            {{ form.latitude }}
+        </div>
+        <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wide">Longitude</label>
+            {{ form.longitude }}
+        </div>
+    </div>
 
-            Save Incident
-
-        </button>
-
+    <div class="flex justify-end gap-3 pt-1">
+        <button type="button" @click="open = false; setTimeout(() => document.getElementById('modal-root').innerHTML = '', 300);"
+            class="rounded-lg border border-slate-200 px-5 py-2 text-sm hover:bg-slate-50 transition">Cancel</button>
+        <button type="submit"
+            class="rounded-lg bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700 transition font-semibold">Save Incident</button>
     </div>
 
 </form>

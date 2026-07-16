@@ -1,15 +1,38 @@
-<div class="space-y-2">
-
-    <div class="flex justify-between">
-
-        <span>Security</span>
-
-        <strong class="text-green-600">
-
-            Healthy
-
-        </strong>
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">Security Center</h3>
+        <span class="flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            {{ overall_status|default:"Healthy" }}
+        </span>
     </div>
-
+    <div class="p-6 space-y-4">
+        {% for check in security_checks %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg
+                    {% if check.status == 'ok' %}bg-emerald-100 text-emerald-600
+                    {% elif check.status == 'warning' %}bg-yellow-100 text-yellow-600
+                    {% else %}bg-red-100 text-red-600{% endif %}">
+                    {% if check.status == 'ok' %}✓{% elif check.status == 'warning' %}⚠{% else %}✗{% endif %}
+                </span>
+                <span class="text-sm font-medium text-slate-700">{{ check.name }}</span>
+            </div>
+            <span class="text-xs font-semibold
+                {% if check.status == 'ok' %}text-emerald-600
+                {% elif check.status == 'warning' %}text-yellow-600
+                {% else %}text-red-600{% endif %}">
+                {{ check.label|default:check.status|title }}
+            </span>
+        </div>
+        {% empty %}
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">✓</span>
+                <span class="text-sm font-medium text-slate-700">System Security</span>
+            </div>
+            <span class="text-xs font-semibold text-emerald-600">Healthy</span>
+        </div>
+        {% endfor %}
+    </div>
 </div>

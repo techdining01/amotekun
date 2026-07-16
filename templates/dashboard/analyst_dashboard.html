@@ -3,6 +3,8 @@
 
 {% block title %}Security Intelligence Dashboard{% endblock %}
 
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
+
 {% block page_title %}
 Security Intelligence & Analytics
 {% endblock %}
@@ -12,237 +14,94 @@ Analytics / Intelligence Dashboard
 {% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-wrap items-center justify-between gap-4">
-
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
-
-        <h2 class="text-2xl font-bold">
-
-            Intelligence Analytics Center
-
-        </h2>
-
-        <p class="text-slate-500">
-
-            Crime trends, hotspot prediction, AI insights and operational intelligence.
-
-        </p>
-
+        <h2 class="text-lg font-bold">Intelligence Analytics Center</h2>
+        <p class="text-xs text-slate-500">Crime trends, hotspot prediction, AI insights and operational intelligence.</p>
     </div>
-
-    <div class="flex gap-3">
-
-        <button
-            class="rounded-xl bg-indigo-600 px-5 py-3 text-white">
-
-            Generate Intelligence Report
-
-        </button>
-
-        <button
-            class="rounded-xl border border-slate-300 px-5 py-3">
-
-            Export Analytics
-
-        </button>
-
+    <div class="flex gap-2">
+        <a href="{% url 'operations-map' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 transition">Intelligence Report</a>
+        <a href="{% url 'operations-map' %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 transition">Export Analytics</a>
     </div>
-
 </div>
-
 {% endblock %}
 
 {% block content %}
 
-<!-- ================================================= -->
 <!-- KPI -->
-<!-- ================================================= -->
-
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-    {% cotton "dashboard/widget_stats"
-        title="Incidents Analysed"
-        value=total_incidents
-        color="blue"
-        icon="chart-bar" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Hotspots"
-        value=hotspots
-        color="red"
-        icon="fire" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Prediction Accuracy"
-        value=model_accuracy
-        color="green"
-        icon="brain" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Risk Index"
-        value=risk_index
-        color="yellow"
-        icon="shield" %}
-
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    {% cotton dashboard_widgets/widget_stats_card title="Incidents Analysed" value={{total_incidents|default:0}} color="blue" icon="chart-bar" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Hotspots" value={{hotspots|default:0}} color="red" icon="fire" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Prediction Accuracy" value={{model_accuracy|default:"N/A"}} color="green" icon="brain" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Risk Index" value={{risk_index|default:"Low"}} color="yellow" icon="shield" / %}
 </div>
 
-
-<!-- ================================================= -->
-<!-- HOTSPOT MAP -->
-<!-- ================================================= -->
-
-<div class="mt-6">
-
-    {% cotton "dashboard/widget_map" %}
-
+<!-- MAP LINK -->
+<div class="mt-3">
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- AI SUMMARY -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
     {% include "cotton/ai/ai_summary.html" %}
-
     {% include "cotton/ai/ai_prediction_card.html" %}
-
 </div>
 
-
-<!-- ================================================= -->
 <!-- TREND ANALYSIS -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_chart"
-        title="Daily Incident Trend" %}
-
-    {% cotton "dashboard/widget_chart"
-        title="Monthly Crime Trend" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Daily Incident Trend" / %}
+    {% cotton dashboard_widgets/widget_chart title="Monthly Crime Trend" / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- HEATMAPS -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_map"
-        title="Crime Heatmap" %}
-
-    {% cotton "dashboard/widget_map"
-        title="Prediction Heatmap" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/map_link / %}
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- INCIDENT ANALYSIS -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_chart"
-        title="Incident Categories" %}
-
-    {% cotton "dashboard/widget_chart"
-        title="Resolution Rate" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Incident Categories" / %}
+    {% cotton dashboard_widgets/widget_chart title="Resolution Rate" / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- WEATHER + TRAFFIC -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/weather/weather_widget.html" %}
-
-    {% include "cotton/traffic/traffic_widget.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
-
-<!-- ================================================= -->
 <!-- AI RECOMMENDATIONS -->
-<!-- ================================================= -->
-
-<div class="mt-6">
-
-    {% include "cotton/ai/ai_recommendations.html" %}
-
+<div class="mt-3">
+    {% include "dashboard/widgets/ai_recommendations.html" %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- FACILITY PERFORMANCE -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_chart"
-        title="Facility Performance" %}
-
-    {% cotton "dashboard/widget_chart"
-        title="Patrol Coverage" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Facility Performance" / %}
+    {% cotton dashboard_widgets/widget_chart title="Patrol Coverage" / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- RECENT INCIDENTS -->
-<!-- ================================================= -->
-
-<div class="mt-6">
-
+<div class="mt-3">
     {% include "cotton/incidents/incident_table.html" %}
-
 </div>
 
-
-<!-- ================================================= -->
 <!-- CAMERA ANALYTICS -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
     {% include "cotton/cameras/camera_grid.html" %}
-
     {% include "cotton/cameras/camera_events.html" %}
-
 </div>
 
-
-<!-- ================================================= -->
 <!-- SECURITY REPORTS -->
-<!-- ================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_table"
-        title="Weekly Intelligence Reports" %}
-
-    {% cotton "dashboard/widget_table"
-        title="Monthly Intelligence Reports" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_table title="Weekly Intelligence Reports" / %}
+    {% cotton dashboard_widgets/widget_table title="Monthly Intelligence Reports" / %}
 </div>
 
-
-<!-- ================================================= -->
 <!-- NOTIFICATIONS -->
-<!-- ================================================= -->
-
-<div class="mt-6">
-
-    {% include "cotton/notifications/notification_list.html" %}
-
+<div class="mt-3">
+    {% include "dashboard/widgets/notification_list.html" %}
 </div>
 
 {% endblock %}

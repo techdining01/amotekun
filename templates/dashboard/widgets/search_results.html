@@ -1,8 +1,71 @@
-{% if query %}
+{% load cotton %}
 
-<div class="rounded-xl border bg-white p-5">
+{% if not query %}
+<div class="px-4 py-8 text-center text-sm text-slate-400">
+    Start typing to search users and incidents…
+</div>
 
-    Searching for <strong>{{ query }}</strong>
+{% elif not results.users and not results.incidents %}
+<div class="px-4 py-8 text-center text-sm text-slate-400">
+    No results for <span class="font-medium text-slate-600">"{{ query }}"</span>
+</div>
+
+{% else %}
+
+<div class="divide-y divide-slate-100">
+
+    {% if results.users %}
+    <div class="px-4 pt-3 pb-1">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Users</p>
+        {% for user in results.users %}
+        <a href="/admin/accounts/user/{{ user.id }}/change/"
+           class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700">
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+            </span>
+            <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-slate-800">{{ user.get_full_name }}</p>
+                <p class="truncate text-xs text-slate-400">{{ user.email }} · {{ user.role }}</p>
+            </div>
+            <span class="ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs
+                {% if user.status == 'ACTIVE' %}bg-green-100 text-green-700
+                {% elif user.status == 'SUSPENDED' %}bg-red-100 text-red-700
+                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                {{ user.status }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if results.incidents %}
+    <div class="px-4 pt-3 pb-2">
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">Incidents</p>
+        {% for incident in results.incidents %}
+        <a href="/admin/reports/incident/{{ incident.id }}/change/"
+           class="flex items-center gap-3 rounded-lg px-2 py-2 hover:bg-slate-50">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full
+                {% if incident.priority == 'critical' %}bg-red-100 text-red-700
+                {% elif incident.priority == 'high' %}bg-orange-100 text-orange-700
+                {% elif incident.priority == 'medium' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-slate-100 text-slate-500{% endif %} text-xs font-bold">
+                {{ incident.report_type|first|upper }}
+            </span>
+            <div class="min-w-0">
+                <p class="truncate text-sm font-medium text-slate-800">{{ incident.title }}</p>
+                <p class="truncate text-xs text-slate-400">{{ incident.report_type }} · {{ incident.created_at|date:"d M Y" }}</p>
+            </div>
+            <span class="ml-auto shrink-0 rounded-full px-2 py-0.5 text-xs
+                {% if incident.status == 'resolved' %}bg-green-100 text-green-700
+                {% elif incident.status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% elif incident.status == 'dispatched' %}bg-blue-100 text-blue-700
+                {% else %}bg-slate-100 text-slate-500{% endif %}">
+                {{ incident.status }}
+            </span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
 
 </div>
 

@@ -1,9 +1,7 @@
 import logging
 from celery import shared_task
-from django.conf import settings
 from decouple import config
 from .models import Camera
-from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 

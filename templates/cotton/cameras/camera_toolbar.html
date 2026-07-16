@@ -1,0 +1,31 @@
+<div class="flex flex-wrap items-center gap-3">
+    <div class="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
+        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
+        </svg>
+        <input type="search" placeholder="Search cameras..."
+               class="w-48 bg-transparent text-sm text-slate-700 placeholder-slate-400 focus:outline-none"
+               hx-get="{{ search_url }}" hx-trigger="keyup changed delay:300ms"
+               hx-target="#camera-grid" hx-include="this">
+    </div>
+
+    {% include "cotton/cameras/camera_filter.html" %}
+
+    <div class="ml-auto flex items-center gap-2">
+        <button class="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition"
+                title="Grid view" onclick="setCameraView('grid')">
+            <svg class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+            </svg>
+        </button>
+        <button class="rounded-xl border border-slate-200 bg-white p-2 hover:bg-slate-50 transition"
+                title="List view" onclick="setCameraView('list')">
+            <svg class="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+        </button>
+    </div>
+</div>

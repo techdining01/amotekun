@@ -3,6 +3,8 @@
 
 {% block title %}AI Command Center{% endblock %}
 
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
+
 {% block page_title %}
 Artificial Intelligence Command Center
 {% endblock %}
@@ -12,134 +14,64 @@ AI / Intelligence Engine
 {% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
-        <h2 class="text-2xl font-bold">
-            AI Security Intelligence
-        </h2>
-
-        <p class="text-slate-500">
-            Predictions, anomaly detection, crime intelligence and decision support.
-        </p>
+        <h2 class="text-lg font-bold">AI Security Intelligence</h2>
+        <p class="text-xs text-slate-500">Predictions, anomaly detection, crime intelligence and decision support.</p>
     </div>
-
-    <div class="flex gap-3">
-
-        <button class="rounded-xl bg-indigo-600 px-5 py-3 text-white">
-            Run Prediction
-        </button>
-
-        <button class="rounded-xl border border-slate-300 px-5 py-3">
-            Generate Report
-        </button>
-
+    <div class="flex gap-2">
+        <a href="{% url 'operations-map' %}" class="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 transition">Run Prediction</a>
+        <a href="{% url 'analyst-dashboard' %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 transition">Generate Report</a>
     </div>
-
 </div>
-
 {% endblock %}
 
 
 {% block content %}
 
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-{% cotton "dashboard/widget_stats"
-title="Prediction Accuracy"
-value=prediction_accuracy
-icon="brain"
-color="indigo" %}
-
-{% cotton "dashboard/widget_stats"
-title="Threat Score"
-value=threat_score
-icon="shield"
-color="red" %}
-
-{% cotton "dashboard/widget_stats"
-title="AI Alerts"
-value=ai_alerts
-icon="bell"
-color="yellow" %}
-
-{% cotton "dashboard/widget_stats"
-title="Running Models"
-value=models_running
-icon="cpu"
-color="green" %}
-
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    {% cotton dashboard_widgets/widget_stats_card title="Prediction Accuracy" value={{prediction_accuracy|default:"N/A"}} icon="brain" color="indigo" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Threat Score" value={{threat_score|default:0}} icon="shield" color="red" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="AI Alerts" value={{ai_alerts|default:0}} icon="bell" color="yellow" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Running Models" value={{models_running|default:0}} icon="cpu" color="green" / %}
 </div>
 
-
-<div class="mt-6">
-
-{% cotton "dashboard/widget_map" %}
-
+<!-- MAP LINK -->
+<div class="mt-3">
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/ai/ai_summary.html" %}
-
-{% include "cotton/ai/ai_prediction_card.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% include "cotton/ai/ai_summary.html" %}
+    {% include "cotton/ai/ai_prediction_card.html" %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% cotton "dashboard/widget_chart"
-title="Crime Prediction" %}
-
-{% cotton "dashboard/widget_chart"
-title="Hotspot Forecast" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Crime Prediction" / %}
+    {% cotton dashboard_widgets/widget_chart title="Hotspot Forecast" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% cotton "dashboard/widget_chart"
-title="Model Accuracy" %}
-
-{% cotton "dashboard/widget_chart"
-title="Risk Trend" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Model Accuracy" / %}
+    {% cotton dashboard_widgets/widget_chart title="Risk Trend" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/cameras/camera_events.html" %}
-
-{% include "cotton/incidents/incident_feed.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% include "cotton/cameras/camera_events.html" %}
+    {% include "cotton/incidents/incident_feed.html" %}
 </div>
 
-
-<div class="mt-6">
-
-{% include "cotton/ai/ai_recommendations.html" %}
-
+<div class="mt-3">
+    {% include "dashboard/widgets/ai_recommendations.html" %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/weather/weather_widget.html" %}
-
-{% include "cotton/traffic/traffic_widget.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
-
-<div class="mt-6">
-
-{% include "cotton/notifications/notification_list.html" %}
-
+<div class="mt-3">
+    {% include "dashboard/widgets/notification_list.html" %}
 </div>
 
 {% endblock %}

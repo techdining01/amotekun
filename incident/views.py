@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 
 
 def home(request):
+    from reports.models import State
+    states = State.objects.order_by('name')
     if request.user.is_authenticated:
         role_map = {
             'ADMIN': ('dashboard/admin_dashboard.html', 'Admin'),
@@ -11,5 +13,5 @@ def home(request):
             'CITIZEN': ('dashboard/citizen_dashboard.html', 'Citizen'),
         }
         template, role_display = role_map.get(request.user.role, ('index.html', 'Citizen'))
-        return render(request, template, {'role_display': role_display})
-    return render(request, "index.html")
+        return render(request, template, {'role_display': role_display, 'states': states})
+    return render(request, "index.html", {'states': states})

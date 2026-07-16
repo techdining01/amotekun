@@ -3,84 +3,49 @@
 >
 
     {% if loading %}
-        <div class="animate-pulse p-6 space-y-4">
+        <div class="animate-pulse p-4 space-y-3">
             <div class="h-4 w-32 rounded bg-slate-200"></div>
-            <div class="h-10 w-24 rounded bg-slate-300"></div>
+            <div class="h-8 w-24 rounded bg-slate-300"></div>
             <div class="h-3 w-40 rounded bg-slate-200"></div>
         </div>
 
     {% else %}
 
-    <div class="p-6">
+    <div class="p-4">
 
         <div class="flex justify-between items-start">
 
             <div>
 
                 <p class="text-sm font-medium text-slate-500">
-
                     {{ title }}
-
                 </p>
 
-                <h2
-                    class="mt-3 text-4xl font-bold {{ value_color|default:'text-slate-800' }}"
-                >
-
-                    {{ value }}
-
+                <h2 class="mt-2 text-3xl font-bold {{ value_color|default:'text-slate-800' }}">
+                    {{ value|default:"—" }}
                 </h2>
 
                 {% if subtitle %}
-
-                <p class="mt-2 text-sm text-slate-500">
-
+                <p class="mt-1 text-sm text-slate-500">
                     {{ subtitle }}
-
                 </p>
-
                 {% endif %}
 
             </div>
 
-            {% if icon %}
-
-                {{ icon }}
-
-            {% endif %}
+            {% if icon %}{{ icon }}{% endif %}
 
         </div>
 
         {% if trend %}
-
-        <div class="mt-6 flex items-center gap-2">
-
+        <div class="mt-4 flex items-center gap-2">
             {% if trend == "up" %}
-
-                <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
-
-                    ▲ {{ percent }}
-
-                </span>
-
+                <span class="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">▲ {{ percent }}</span>
             {% elif trend == "down" %}
-
-                <span class="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
-
-                    ▼ {{ percent }}
-
-                </span>
-
+                <span class="rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">▼ {{ percent }}</span>
             {% endif %}
-
-            <span class="text-xs text-slate-400">
-
-                {{ trend_text }}
-
-            </span>
-
+            <span class="text-xs text-slate-400">{{ trend_text }}</span>
         </div>
-
         {% endif %}
 
     </div>

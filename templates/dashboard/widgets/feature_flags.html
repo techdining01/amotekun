@@ -1,5 +1,30 @@
-<div class="rounded-xl border p-4">
-
-    Feature flags will appear here.
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">Feature Flags</h3>
+        <span class="text-xs text-slate-500">{{ flags|length }} flags</span>
+    </div>
+    <div class="divide-y divide-slate-100">
+        {% for flag in flags %}
+        <div class="flex items-center justify-between px-6 py-3">
+            <div>
+                <p class="text-sm font-medium text-slate-800">{{ flag.name }}</p>
+                <p class="text-xs text-slate-500 mt-0.5">{{ flag.description }}</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" {% if flag.enabled %}checked{% endif %} class="sr-only peer"
+                       hx-post="{% url 'admin-dashboard' %}" hx-vals='{"flag": "{{ flag.key }}"}'>
+                <div class="w-9 h-5 rounded-full peer transition
+                    {% if flag.enabled %}bg-sky-600{% else %}bg-slate-300{% endif %}
+                    after:content-[''] after:absolute after:top-0.5 after:left-0.5
+                    after:bg-white after:rounded-full after:h-4 after:w-4 after:transition
+                    {% if flag.enabled %}after:translate-x-4{% endif %}"></div>
+            </label>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-10 text-center">
+            <span class="text-3xl mb-3">🚩</span>
+            <p class="text-sm text-slate-500">No feature flags configured.</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>

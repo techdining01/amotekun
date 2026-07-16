@@ -18,22 +18,28 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic.base import RedirectView
+from django.http import HttpResponse
 from .views import home
 import reports.urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include("allauth.urls")),
+    path(".well-known/appspecific/com.chrome.devtools.json", lambda r: HttpResponse(status=204)),
     path("sw.js", RedirectView.as_view(url="/static/js/sw.js", permanent=False)),
+    path("api/accounts/", include("accounts.views.urls")),
     path("api/geography/", include("geography.urls")),
     path("api/", include(reports.urls)),
     path("api/stations/", include("stations.urls")),
     path("api/dispatch/", include("dispatch.urls")),
     path("api/chat/", include("chat.urls")),
+    path("chat/", include("chat.urls")),
     path("api/surveillance/", include("surveillance.urls")),
+    path("surveillance/", include("surveillance.urls")),
     path("api/traffic/", include("traffic.urls")),
     path("api/analytics/", include("analytics.urls")),
     path("api/mobile/", include("mobile.urls")),
+    path("api/patrol/", include("patrol.urls")),
     path("dashboard/", include("dashboard.urls")),
     path("", home, name="home"),
 ]

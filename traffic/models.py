@@ -1,5 +1,4 @@
-from django.db import models
-from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.db import models 
 from django.conf import settings
 
 
@@ -35,7 +34,7 @@ class TrafficIncident(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
 
     # Location
-    location = gis_models.PointField(srid=4326)
+    location = models.PointField(srid=4326)
     address = models.CharField(max_length=255, blank=True)
     road_name = models.CharField(max_length=255, blank=True)
 
@@ -128,7 +127,7 @@ class Road(models.Model):
     source_id = models.CharField(max_length=255, unique=True, blank=True, null=True)
     name = models.CharField(max_length=255, blank=True, null=True)
     road_type = models.CharField(max_length=20, choices=ROAD_TYPES, default="local")
-    geometry = gis_models.LineStringField(srid=4326, null=True, blank=True)
+    geometry = models.LineStringField(srid=4326, null=True, blank=True)
 
     # Traffic capacity
     speed_limit = models.IntegerField(help_text="Speed limit in km/h", null=True, blank=True)
@@ -182,7 +181,7 @@ class TrafficSnapshot(models.Model):
         ],
         default="unknown",
     )
-    geometry = gis_models.LineStringField(srid=4326, null=True, blank=True)
+    geometry = models.LineStringField(srid=4326, null=True, blank=True)
     incident_count = models.IntegerField(default=0)
     camera_count = models.IntegerField(default=0)
     weather_condition = models.CharField(max_length=100, blank=True)
@@ -255,7 +254,7 @@ class TrafficAlert(models.Model):
     )
 
     # Location
-    location = gis_models.PointField(srid=4326)
+    location = models.PointField(srid=4326)
     road = models.ForeignKey(Road, on_delete=models.SET_NULL, null=True, blank=True)
 
     # Details
@@ -283,3 +282,53 @@ class TrafficAlert(models.Model):
 
     def __str__(self):
         return f"{self.alert_type} - {self.road.name if self.road else 'Unknown road'}"
+
+
+class Weather(models.Model):
+    """Weather conditions affecting traffic"""
+
+    CONDITION_TYPES = [
+        ("clear", "Clear"),
+        ("rain", "Rain"),
+        ("snow", "Snow"),
+        ("fog", "Fog"),
+        ("storm", "Storm"),
+        ("wind", "Wind"),
+    ]
+
+    condition_type = models.CharField(max_length=50, choices=CONDITION_TYPES)
+    severity = models.CharField(
+        max_length=20,
+        choices=[
+            ("low", "Low"),
+            ("medium", "Medium"),
+            ("high", "High"),
+            ("critical", "Critical"),
+        ],
+        default="medium",
+    )
+
+    # Location
+    location = models.PointField(srid=4326)
+    road = models.ForeignKey(Road, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # Details
+    description = models.TextField(blank=True)
+    temperature = models.FloatField(null=True, blank=True)
+    precipitation = models.FloatField(null=True, blank=True, help_text="mm")
+    wind_speed = models.FloatField(null=True, blank=True, help_text="km/h")
+
+    # Timestamps
+    observed_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-observed_at"]
+        indexes = [
+            models.Index(fields=["condition_type", "-observed_at"]),
+            models.Index(fields=["severity", "-observed_at"]),
+            models.Index(fields=["road", "-observed_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.condition_type} - {self.road.name if self.road else 'Unknown road'}" 

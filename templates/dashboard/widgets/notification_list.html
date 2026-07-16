@@ -1,9 +1,76 @@
-<div class="divide-y">
-
-    <div class="p-4">
-
-        No notifications.
-
+<div class="rounded-2xl border border-slate-200 bg-white shadow-xl w-[380px] max-w-[95vw]">
+    <div class="flex items-center justify-between px-4 pt-3 pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+            <h3 class="text-sm font-semibold text-slate-800">Notifications</h3>
+            {% if unread_count %}
+            <span class="text-xs px-2 py-0.5 rounded-full bg-red-100 text-red-700 font-semibold">{{ unread_count }} new</span>
+            {% endif %}
+        </div>
+        <div class="flex items-center gap-1">
+            {% if unread_count %}
+            <button
+                hx-post="{% url 'notification-mark-read' %}"
+                hx-target="#notification-items"
+                hx-swap="innerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                class="text-xs px-2 py-1 rounded-lg text-blue-600 hover:bg-blue-50 transition font-medium"
+                title="Mark all as read">
+                ✓ Mark all read
+            </button>
+            {% endif %}
+            <button
+                hx-post="{% url 'notification-clear' %}"
+                hx-target="#notification-items"
+                hx-swap="innerHTML"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-on::after-request="showClearToast()"
+                class="text-xs px-2 py-1 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-red-500 transition font-medium"
+                title="Clear all">
+                🗑 Clear
+            </button>
+        </div>
     </div>
 
+    <div id="notification-items" class="max-h-[420px] overflow-y-auto divide-y divide-slate-100">
+        {% for notification in notifications %}
+        <div class="flex items-start gap-3 px-4 py-3 {% if not notification.is_read %}bg-sky-50/60{% endif %} hover:bg-slate-50 transition">
+            <div class="mt-0.5 h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-sm
+                {% if notification.notification_type == 'incident_created' %}bg-red-100 text-red-600
+                {% elif notification.notification_type == 'dispatch_created' or notification.notification_type == 'dispatch_assigned' %}bg-orange-100 text-orange-600
+                {% elif notification.notification_type == 'system_alert' %}bg-yellow-100 text-yellow-600
+                {% else %}bg-blue-100 text-blue-600{% endif %}">
+                {% if notification.notification_type == 'incident_created' %}🚨
+                {% elif notification.notification_type == 'dispatch_created' %}📡
+                {% elif notification.notification_type == 'dispatch_assigned' %}🚑
+                {% elif notification.notification_type == 'system_alert' %}⚠️
+                {% else %}ℹ️{% endif %}
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="font-semibold text-xs text-slate-800 truncate">{{ notification.title }}</div>
+                <div class="mt-0.5 text-xs text-slate-500 line-clamp-2">{{ notification.message }}</div>
+                <div class="mt-1 text-[10px] text-slate-400">{{ notification.created_at|timesince }} ago</div>
+            </div>
+            {% if not notification.is_read %}
+            <div class="h-2 w-2 rounded-full bg-sky-500 shrink-0 mt-2 flex-none"></div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="text-center py-10 text-slate-400">
+            <div class="text-3xl mb-2">🔔</div>
+            <p class="text-sm">No notifications</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>
+
+<script>
+function showClearToast() {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const t = document.createElement('div');
+    t.className = 'pointer-events-auto flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-lg';
+    t.innerHTML = '<span class="text-base">🗑️</span><span class="text-sm text-slate-700 font-medium">Notifications cleared</span>';
+    container.appendChild(t);
+    setTimeout(() => t.remove(), 3000);
+}
+</script>

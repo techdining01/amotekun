@@ -197,12 +197,8 @@ function initNotifications() {
     return notificationClient;
 }
 
-// Auto-initialize on page load (only for authenticated users)
-document.addEventListener('DOMContentLoaded', function() {
-    if (document.body.getAttribute('data-user-authenticated') !== null) {
-        initNotifications();
-    }
-});
+// Auto-initialize disabled — websocket.js handles the connection for dashboard pages.
+// Call initNotifications() manually only on non-dashboard pages if needed.
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {

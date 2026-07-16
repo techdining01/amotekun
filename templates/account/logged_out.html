@@ -1,17 +1,34 @@
 {% extends "account/base_account.html" %}
+{% load cotton %}
 
-{% block title %}Logged Out | Amotekun{% endblock %}
-{% block heading %}You're logged out{% endblock %}
-{% block subheading %}Thank you for using Amotekun. Come back anytime.{% endblock %}
+{% block title %}Signed Out | Amotekun{% endblock %}
+{% block heading %}You're signed out{% endblock %}
+{% block subheading %}Your session has ended safely. Thank you for using Amotekun.{% endblock %}
 
 {% block content %}
-    {% cotton auth_card title="Signed out" subtitle="You are now safely logged out." %}
-        <div class="px-8 pb-8 sm:px-10 text-center space-y-6">
-            <p class="text-slate-300">Your session has ended successfully.</p>
-            <div class="grid gap-3 sm:grid-cols-2">
-                <a href="{% url 'account_login' %}" class="inline-flex items-center justify-center rounded-2xl bg-sky-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 hover:bg-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400">Log in again</a>
-                <a href="{% url 'account_signup' %}" class="inline-flex items-center justify-center rounded-2xl border border-slate-700 bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-100 shadow-lg shadow-slate-950/20 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500">Sign up</a>
-            </div>
+{% cotton auth_card title="Signed Out" subtitle="You are now safely logged out." %}
+    <div class="text-center space-y-6">
+        <div class="flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 mx-auto">
+            <svg class="w-8 h-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
         </div>
-    {% endcotton %}
+        <p class="text-slate-400 text-sm">Your session has ended successfully.</p>
+        <div class="grid grid-cols-2 gap-3">
+            <a href="{% url 'account_login' %}"
+               class="flex items-center justify-center rounded-2xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white hover:bg-sky-500 transition">
+                Sign In Again
+            </a>
+            <a href="{% url 'home' %}"
+               class="flex items-center justify-center rounded-2xl border border-slate-700 px-4 py-3 text-sm font-semibold text-slate-200 hover:border-slate-500 transition">
+                Public Portal
+            </a>
+        </div>
+        <div class="pt-4 border-t border-slate-800">
+            <p class="text-xs text-slate-500">
+                Need emergency assistance? <a href="tel:112" class="text-red-400 hover:text-red-300 font-semibold">Call 112</a>
+            </p>
+        </div>
+    </div>
+{% endcotton %}
 {% endblock %}

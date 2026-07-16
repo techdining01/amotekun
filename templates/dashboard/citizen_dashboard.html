@@ -3,207 +3,266 @@
 
 {% block title %}Citizen Dashboard{% endblock %}
 
-{% block page_title %}
-Citizen Safety Portal
-{% endblock %}
+{% block page_title %}Citizen Safety Portal{% endblock %}
 
-{% block breadcrumb %}
-Citizen / Dashboard
-{% endblock %}
+{% block breadcrumb %}Citizen / Dashboard{% endblock %}
+
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-wrap items-center justify-between gap-4">
-
+<div class="flex flex-wrap items-center justify-between gap-3">
     <div>
-
-        <h2 class="text-2xl font-bold">
-            Welcome, {{ user.get_full_name|default:user.username }}
-        </h2>
-
-        <p class="text-slate-500">
-            Report emergencies, monitor your reports and receive security alerts.
-        </p>
-
+        <h2 class="text-xl font-bold">Welcome, {{ user.get_full_name|default:user.username }}</h2>
+        <p class="text-sm text-slate-500">Report emergencies, monitor your reports and receive security alerts.</p>
     </div>
-
-    <div class="flex gap-3">
-
+    <div class="flex gap-2">
         <button
-            class="rounded-xl bg-red-600 px-5 py-3 text-white">
-
-            Report Emergency
-
-        </button>
-
+            hx-get="{% url 'incident-create' %}?type=emergency"
+            hx-target="#modal-root"
+            hx-swap="innerHTML"
+            class="rounded-xl bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-500 transition font-semibold">🚨 Report Emergency</button>
         <button
-            class="rounded-xl bg-blue-600 px-5 py-3 text-white">
-
-            Request Assistance
-
-        </button>
-
+            hx-get="{% url 'incident-create' %}?type=support"
+            hx-target="#modal-root"
+            hx-swap="innerHTML"
+            class="rounded-xl bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 transition font-semibold">🤝 Request Support</button>
     </div>
-
 </div>
-
 {% endblock %}
-
 
 {% block content %}
 
-<!-- ====================================================== -->
 <!-- QUICK STATS -->
-<!-- ====================================================== -->
-
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-    {% cotton "dashboard/widget_stats"
-        title="My Reports"
-        value=my_reports
-        icon="document"
-        color="blue" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Open Cases"
-        value=open_cases
-        icon="shield"
-        color="yellow" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Resolved Cases"
-        value=resolved_cases
-        icon="check-circle"
-        color="green" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Emergency Alerts"
-        value=alerts
-        icon="bell"
-        color="red" %}
-
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">My Reports</p>
+                <p class="mt-1 text-lg font-bold text-blue-600">{{ my_reports|default:0 }}</p>
+                <p class="text-xs text-slate-400 mt-1">Total submitted</p>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-blue-100 flex items-center justify-center text-xl">📄</div>
+        </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">Open Cases</p>
+                <p class="mt-1 text-lg font-bold text-yellow-600">{{ open_cases|default:0 }}</p>
+                <p class="text-xs text-slate-400 mt-1">Under investigation</p>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-yellow-100 flex items-center justify-center text-xl">🛡️</div>
+        </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">Resolved Cases</p>
+                <p class="mt-1 text-lg font-bold text-green-600">{{ resolved_cases|default:0 }}</p>
+                <p class="text-xs text-slate-400 mt-1">Successfully closed</p>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-green-100 flex items-center justify-center text-xl">✅</div>
+        </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm text-slate-500">Emergency Alerts</p>
+                <p class="mt-1 text-lg font-bold text-red-600">{{ alerts|default:0 }}</p>
+                <p class="text-xs text-slate-400 mt-1">Active in your area</p>
+            </div>
+            <div class="h-10 w-10 rounded-xl bg-red-100 flex items-center justify-center text-xl">🔔</div>
+        </div>
+    </div>
 </div>
 
-
-<!-- ====================================================== -->
-<!-- INCIDENT MAP -->
-<!-- ====================================================== -->
-
-<div class="mt-6">
-
-    {% cotton "dashboard/widget_map" %}
-
+<!-- MAP LINK -->
+<div class="mt-3">
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
+<!-- MY INCIDENTS + TASKS -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+            <h3 class="font-semibold text-slate-800">My Incidents</h3>
+            <button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML"
+                class="text-xs text-blue-600 hover:text-blue-500">+ New</button>
+        </div>
+        <div class="divide-y divide-slate-100 max-h-[360px] overflow-y-auto">
+            {% for incident in incidents %}
+            <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                <span class="mt-1.5 h-2 w-2 rounded-full shrink-0
+                    {% if incident.priority == 'critical' %}bg-red-500
+                    {% elif incident.priority == 'high' %}bg-orange-400
+                    {% else %}bg-slate-300{% endif %}"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ incident.title }}</p>
+                    <p class="text-xs text-slate-400">{{ incident.created_at|timesince }} ago · {{ incident.status|title }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <span class="text-3xl mb-2">📋</span>
+                <p class="text-sm text-slate-500">No incidents reported yet.</p>
+                <button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML"
+                    class="mt-2 text-sm text-sky-600 hover:text-sky-500">Report one now →</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
-<!-- ====================================================== -->
-<!-- MY INCIDENTS -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/incidents/incident_feed.html" %}
-
-    {% include "cotton/tasks/task_table.html" %}
-
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="px-4 py-3 border-b border-slate-100">
+            <h3 class="font-semibold text-slate-800">My Tasks</h3>
+        </div>
+        <div class="divide-y divide-slate-100 max-h-[360px] overflow-y-auto">
+            {% for task in tasks %}
+            <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800 truncate">{{ task.title }}</p>
+                    <p class="text-xs text-slate-400">{{ task.due_date|date:"d M Y"|default:"No due date" }} · {{ task.status|title }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <span class="text-3xl mb-2">✅</span>
+                <p class="text-sm text-slate-500">No active tasks.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
-
-<!-- ====================================================== -->
 <!-- EMERGENCY SERVICES -->
-<!-- ====================================================== -->
-
-<div class="mt-6">
-
-    {% include "cotton/facilities/facility_grid.html" %}
-
+<div class="mt-3">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+        <h3 class="font-semibold mb-3">Nearby Emergency Services</h3>
+        <div class="grid gap-3 sm:grid-cols-3">
+            <div class="flex items-center gap-3 rounded-xl bg-red-50 border border-red-100 p-3">
+                <span class="text-xl">🚨</span>
+                <div>
+                    <p class="font-medium text-sm">Emergency</p>
+                    <a href="tel:112" class="text-xs text-red-600 font-semibold">Call 112</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl bg-blue-50 border border-blue-100 p-3">
+                <span class="text-xl">👮</span>
+                <div>
+                    <p class="font-medium text-sm">Police</p>
+                    <a href="tel:17" class="text-xs text-blue-600 font-semibold">Call 17</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 rounded-xl bg-green-50 border border-green-100 p-3">
+                <span class="text-xl">🏥</span>
+                <div>
+                    <p class="font-medium text-sm">Hospital</p>
+                    <a href="tel:19" class="text-xs text-green-600 font-semibold">Call 19</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-
-<!-- ====================================================== -->
-<!-- SAFETY ALERTS -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/alerts/alert_feed.html" %}
-
-    {% include "cotton/notifications/notification_list.html" %}
-
+<!-- SAFETY ALERTS + NOTIFICATIONS -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div class="px-4 py-3 border-b border-slate-100">
+            <h3 class="font-semibold text-slate-800">Safety Alerts</h3>
+        </div>
+        <div class="divide-y divide-slate-100 max-h-[300px] overflow-y-auto">
+            {% for alert in safety_alerts %}
+            <div class="flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition">
+                <span class="mt-1 h-2 w-2 rounded-full bg-red-500 shrink-0"></span>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-slate-800">{{ alert.title }}</p>
+                    <p class="text-xs text-slate-400">{{ alert.created_at|timesince }} ago</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="flex flex-col items-center justify-center py-8 text-center">
+                <span class="text-3xl mb-2">🟢</span>
+                <p class="text-sm text-slate-500">No active alerts in your area.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+         hx-get="{% url 'notification-list' %}"
+         hx-trigger="load"
+         hx-swap="innerHTML">
+        <div class="flex items-center justify-center py-10 text-slate-400 text-sm">Loading notifications...</div>
+    </div>
 </div>
 
-
-<!-- ====================================================== -->
-<!-- AI SAFETY ASSISTANT -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/ai/ai_summary.html" %}
-
-    {% include "cotton/ai/ai_recommendations.html" %}
-
+<!-- AI SAFETY ASSISTANT + RECOMMENDATIONS -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50 to-blue-50 p-4">
+        <div class="flex items-start gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-white shrink-0">🤖</div>
+            <div class="flex-1">
+                <h3 class="font-semibold">AI Safety Assistant</h3>
+                <p class="mt-2 text-sm leading-6 text-slate-600">{{ ai.summary|default:"Stay safe. Report suspicious activity to authorities immediately. Avoid poorly lit areas at night." }}</p>
+            </div>
+        </div>
+    </div>
+    {% include "dashboard/widgets/ai_recommendations.html" %}
 </div>
 
-
-<!-- ====================================================== -->
-<!-- WEATHER & TRAFFIC -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/weather/weather_widget.html" %}
-
-    {% include "cotton/traffic/traffic_widget.html" %}
-
+<!-- WEATHER + TRAFFIC -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
-
-<!-- ====================================================== -->
-<!-- SAFETY TIPS -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_activity"
-        title="Community Safety Tips" %}
-
-    {% cotton "dashboard/widget_activity"
-        title="Recent Community Updates" %}
-
+<!-- SAFETY TIPS + COMMUNITY UPDATES -->
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+        <h3 class="font-semibold mb-3">Community Safety Tips</h3>
+        <div class="space-y-2">
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0"></div><p class="text-sm text-slate-600">Always lock your doors and windows when leaving home</p></div>
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0"></div><p class="text-sm text-slate-600">Keep emergency numbers saved in your phone</p></div>
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0"></div><p class="text-sm text-slate-600">Stay aware of your surroundings in public areas</p></div>
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 shrink-0"></div><p class="text-sm text-slate-600">Report suspicious activity to Amotekun or Police</p></div>
+        </div>
+    </div>
+    <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4">
+        <h3 class="font-semibold mb-3">Recent Community Updates</h3>
+        <div class="space-y-2">
+            {% for update in community_updates %}
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600 shrink-0"></div><p class="text-sm text-slate-600">{{ update.message }}</p></div>
+            {% empty %}
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600 shrink-0"></div><p class="text-sm text-slate-600">New patrol route added to downtown area</p></div>
+            <div class="flex gap-2"><div class="mt-1.5 h-1.5 w-1.5 rounded-full bg-green-600 shrink-0"></div><p class="text-sm text-slate-600">Community meeting scheduled for next week</p></div>
+            {% endfor %}
+        </div>
+    </div>
 </div>
 
-
-<!-- ====================================================== -->
-<!-- NEARBY EMERGENCY CONTACTS -->
-<!-- ====================================================== -->
-
-<div class="mt-6">
-
-    {% cotton "dashboard/widget_table"
-        title="Nearby Emergency Contacts" %}
-
-</div>
-
-
-<!-- ====================================================== -->
 <!-- QUICK ACTIONS -->
-<!-- ====================================================== -->
-
-<div class="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-    {% cotton "dashboard/widget_actions"
-        title="Emergency Call" %}
-
-    {% cotton "dashboard/widget_actions"
-        title="Share Live Location" %}
-
-    {% cotton "dashboard/widget_actions"
-        title="Upload Evidence" %}
-
-    {% cotton "dashboard/widget_actions"
-        title="Anonymous Report" %}
-
+<div class="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <a href="tel:112" class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition text-left">
+        <div class="text-2xl mb-2">📞</div>
+        <div class="font-semibold text-sm">Emergency Call</div>
+        <div class="text-xs text-slate-500">Quick dial 112</div>
+    </a>
+    <button onclick="navigator.geolocation.getCurrentPosition(function(p){alert('Lat: '+p.coords.latitude+', Lon: '+p.coords.longitude)})" class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition text-left">
+        <div class="text-2xl mb-2">📍</div>
+        <div class="font-semibold text-sm">Share Location</div>
+        <div class="text-xs text-slate-500">Share with responders</div>
+    </button>
+    <button hx-get="{% url 'incident-create' %}?type=evidence" hx-target="#modal-root" hx-swap="innerHTML"
+        class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition text-left">
+        <div class="text-2xl mb-2">📸</div>
+        <div class="font-semibold text-sm">Upload Evidence</div>
+        <div class="text-xs text-slate-500">Photos &amp; videos</div>
+    </button>
+    <button hx-get="{% url 'incident-create' %}" hx-target="#modal-root" hx-swap="innerHTML"
+        class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition text-left">
+        <div class="text-2xl mb-2">👤</div>
+        <div class="font-semibold text-sm">Anonymous Report</div>
+        <div class="text-xs text-slate-500">Stay protected</div>
+    </button>
 </div>
 
 {% endblock %}

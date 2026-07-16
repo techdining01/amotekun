@@ -1,10 +1,6 @@
-from django.contrib.gis.geos import Point
 from django.db import connection
-from django.http import JsonResponse
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
 from rest_framework.generics import ListAPIView
 
 from .models import PoliceStation, AmotekunStation, Hospital

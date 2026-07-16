@@ -1,16 +1,24 @@
-
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     margin: 0;
     padding: 0;
-    overflow: hidden;
 }
+
+/* Prevent FOUC — hide x-cloak elements before Alpine initialises */
+[x-cloak] { display: none !important; }
+
+/* Prevent layout shift on sidebar transition */
+aside { will-change: transform; }
 
 #map {
     width: 100%;
@@ -20,11 +28,6 @@ body {
 /* Ensure map doesn't block top-right area */
 #map.leaflet-container {
     z-index: 1 !important;
-}
-
-/* x-cloak for Alpine.js */
-[x-cloak] {
-    display: none !important;
 }
 
 /* Ensure modals are hidden initially */
@@ -52,14 +55,172 @@ body {
     z-index: 1000 !important;
 }
 
+/* Smooth scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* Custom animations */
 @keyframes pulse {
     0%, 100% {
         transform: scale(1);
-        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
     }
     50% {
-        transform: scale(1.1);
-        box-shadow: 0 0 0 10px rgba(0, 0, 0, 0);
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
     }
 }
 
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+}
+
+/* Glass morphism — dark variant used on landing, light on dashboard */
+.glass-light {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Better focus states */
+*:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Loading skeleton */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+}
+
+/* Status indicator pulse */
+.status-pulse {
+    position: relative;
+}
+
+.status-pulse::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: inherit;
+    opacity: 0.4;
+    animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.8;
+    }
+    80%, 100% {
+        transform: translate(-50%, -50%) scale(2.4);
+        opacity: 0;
+    }
+}
+
+/* Card hover lift */
+.card-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Select / dropdown option visibility fix ──
+   Native <select> options inherit the page background in some browsers.
+   Force a dark background on selects inside dark form wrappers so options
+   are always readable, and a light background on dashboard (light) forms. */
+.bg-slate-950\/80 select,
+.bg-slate-900\/60 select,
+[class*="bg-slate-9"] select {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    color-scheme: dark;
+}
+.bg-slate-950\/80 select option,
+.bg-slate-900\/60 select option,
+[class*="bg-slate-9"] select option {
+    background-color: #1e293b;
+    color: #f1f5f9;
+}
+/* Dashboard (light) forms */
+.bg-white select,
+.bg-slate-50 select {
+    background-color: #ffffff;
+    color: #1e293b;
+    color-scheme: light;
+}
+.bg-white select option,
+.bg-slate-50 select option {
+    background-color: #ffffff;
+    color: #1e293b;
+}
+
+/* Gradient text */
+.gradient-text {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}

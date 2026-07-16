@@ -88,9 +88,8 @@ class HospitalSerializer(GeoFeatureModelSerializer):
 
 
 class MediaUploadSerializer(serializers.Serializer):
-    incident = serializers.IntegerField()
-    image = serializers.ImageField(required=False)
-    video = serializers.FileField(required=False)
+    media_type = serializers.ChoiceField(choices=Incident.MEDIA_TYPES)
+    file = serializers.FileField(required=False)
     caption = serializers.CharField(required=False, allow_blank=True, max_length=500)
 
 

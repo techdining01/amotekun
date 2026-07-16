@@ -3,6 +3,8 @@
 
 {% block title %}Audit Dashboard{% endblock %}
 
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
+
 {% block page_title %}
 Audit & Compliance Center
 {% endblock %}
@@ -12,142 +14,60 @@ Administration / Audit
 {% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
-
-        <h2 class="text-2xl font-bold">
-
-            System Audit & Compliance
-
-        </h2>
-
-        <p class="text-slate-500">
-
-            Review user activities, approvals, investigations and system integrity.
-
-        </p>
-
+        <h2 class="text-lg font-bold">System Audit & Compliance</h2>
+        <p class="text-xs text-slate-500">Review user activities, approvals, investigations and system integrity.</p>
     </div>
-
-    <div class="flex gap-3">
-
-        <button class="rounded-xl bg-blue-600 px-5 py-3 text-white">
-
-            Export Audit
-
-        </button>
-
-        <button class="rounded-xl border border-slate-300 px-5 py-3">
-
-            Generate Compliance Report
-
-        </button>
-
+    <div class="flex gap-2">
+        <a href="{% url 'admin-dashboard' %}" class="rounded-lg bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700 transition">Export Audit</a>
+        <a href="{% url 'analyst-dashboard' %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 transition">Compliance Report</a>
     </div>
-
 </div>
-
 {% endblock %}
 
 
 {% block content %}
 
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-{% cotton "dashboard/widget_stats"
-title="Audit Logs"
-value=audit_logs
-icon="clipboard"
-color="blue" %}
-
-{% cotton "dashboard/widget_stats"
-title="Failed Logins"
-value=failed_logins
-icon="lock"
-color="red" %}
-
-{% cotton "dashboard/widget_stats"
-title="Security Alerts"
-value=security_alerts
-icon="shield"
-color="yellow" %}
-
-{% cotton "dashboard/widget_stats"
-title="Compliance Score"
-value=compliance_score
-icon="badge-check"
-color="green" %}
-
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    {% cotton dashboard_widgets/widget_stats_card title="Audit Logs" value={{audit_logs|default:0}} icon="clipboard" color="blue" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Failed Logins" value={{failed_logins|default:0}} icon="lock" color="red" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Security Alerts" value={{security_alerts|default:0}} icon="shield" color="yellow" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Compliance Score" value={{compliance_score|default:"N/A"}} icon="badge-check" color="green" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% cotton "dashboard/widget_chart"
-title="User Activity" %}
-
-{% cotton "dashboard/widget_chart"
-title="System Usage" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="User Activity" / %}
+    {% cotton dashboard_widgets/widget_chart title="System Usage" / %}
 </div>
 
-
-<div class="mt-6">
-
-{% cotton "dashboard/widget_table"
-title="Audit Logs" %}
-
+<div class="mt-3">
+    {% cotton dashboard_widgets/widget_table title="Audit Logs" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% cotton "dashboard/widget_table"
-title="Permission Changes" %}
-
-{% cotton "dashboard/widget_table"
-title="Administrative Actions" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_table title="Permission Changes" / %}
+    {% cotton dashboard_widgets/widget_table title="Administrative Actions" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% cotton "dashboard/widget_chart"
-title="Login History" %}
-
-{% cotton "dashboard/widget_chart"
-title="Security Incidents" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Login History" / %}
+    {% cotton dashboard_widgets/widget_chart title="Security Incidents" / %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/incidents/incident_feed.html" %}
-
-{% include "cotton/notifications/notification_list.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% include "cotton/incidents/incident_feed.html" %}
+    {% include "dashboard/widgets/notification_list.html" %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/ai/ai_summary.html" %}
-
-{% include "cotton/ai/ai_recommendations.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% include "cotton/ai/ai_summary.html" %}
+    {% include "dashboard/widgets/ai_recommendations.html" %}
 </div>
 
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-{% include "cotton/weather/weather_widget.html" %}
-
-{% include "cotton/traffic/traffic_widget.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
 {% endblock %}

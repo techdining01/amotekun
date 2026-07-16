@@ -3,6 +3,8 @@
 
 {% block title %}Amotekun Dashboard{% endblock %}
 
+{% block sidebar %}{% cotton sidebar/nav_links / %}{% endblock %}
+
 {% block page_title %}
 Amotekun Operations Center
 {% endblock %}
@@ -12,190 +14,76 @@ Operations / Amotekun Dashboard
 {% endblock %}
 
 {% block toolbar %}
-
-<div class="flex flex-wrap items-center justify-between gap-4">
-
+<div class="flex flex-wrap items-center justify-between gap-2">
     <div>
-
-        <h2 class="text-2xl font-bold">
-
-            Community Security Intelligence
-
-        </h2>
-
-        <p class="text-slate-500">
-
-            Monitor forests, villages, highways and community intelligence across the state.
-
-        </p>
-
+        <h2 class="text-lg font-bold">Community Security Intelligence</h2>
+        <p class="text-xs text-slate-500">Monitor forests, villages, highways and community intelligence.</p>
     </div>
-
-    <div class="flex gap-3">
-
-        <button
-            class="rounded-xl bg-green-700 px-5 py-3 text-white">
-
-            Deploy Patrol
-
-        </button>
-
-        <button
-            class="rounded-xl border border-slate-300 px-5 py-3">
-
-            Intelligence Report
-
-        </button>
-
+    <div class="flex gap-2">
+        <a href="{% url 'dispatcher-dashboard' %}" class="rounded-lg bg-green-700 px-3 py-1.5 text-sm text-white hover:bg-green-800 transition">Deploy Patrol</a>
+        <a href="{% url 'incident-create' %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50 transition">Intelligence Report</a>
     </div>
-
 </div>
-
 {% endblock %}
 
 {% block content %}
 
-<!-- ========================================================= -->
 <!-- KPI -->
-<!-- ========================================================= -->
-
-<div class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-    {% cotton "dashboard/widget_stats"
-        title="Active Patrols"
-        value=active_patrols
-        icon="shield"
-        color="green" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Village Reports"
-        value=village_reports
-        icon="map"
-        color="blue" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Forest Alerts"
-        value=forest_alerts
-        icon="tree"
-        color="red" %}
-
-    {% cotton "dashboard/widget_stats"
-        title="Intelligence Tips"
-        value=intelligence_tips
-        icon="brain"
-        color="purple" %}
-
+<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    {% cotton dashboard_widgets/widget_stats_card title="Active Patrols" value={{active_patrols|default:0}} icon="shield" color="green" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Village Reports" value={{village_reports|default:0}} icon="map" color="blue" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Forest Alerts" value={{forest_alerts|default:0}} icon="tree" color="red" / %}
+    {% cotton dashboard_widgets/widget_stats_card title="Intelligence Tips" value={{intelligence_tips|default:0}} icon="brain" color="purple" / %}
 </div>
 
-
-<!-- ========================================================= -->
-<!-- MAP -->
-<!-- ========================================================= -->
-
-<div class="mt-6">
-
-    {% cotton "dashboard/widget_map" %}
-
+<!-- MAP LINK -->
+<div class="mt-3">
+    {% cotton dashboard_widgets/map_link / %}
 </div>
 
-
-<!-- ========================================================= -->
 <!-- PATROL + INCIDENTS -->
-<!-- ========================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
     {% include "cotton/patrol/patrol_grid.html" %}
-
     {% include "cotton/incidents/incident_feed.html" %}
-
 </div>
 
-
-<!-- ========================================================= -->
 <!-- COMMUNITY -->
-<!-- ========================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/facilities/facility_grid.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <!-- {% include "cotton/facilities/facility_grid.html" %} -->
     {% include "cotton/dispatch/dispatch_queue.html" %}
-
 </div>
 
-
-<!-- ========================================================= -->
 <!-- LIVE CAMERAS -->
-<!-- ========================================================= -->
-
-<div class="mt-6">
-
+<div class="mt-3">
     {% include "cotton/cameras/camera_grid.html" %}
-
 </div>
 
-
-<!-- ========================================================= -->
 <!-- HOTSPOTS -->
-<!-- ========================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% cotton "dashboard/widget_chart"
-        title="Crime Hotspots" %}
-
-    {% cotton "dashboard/widget_chart"
-        title="Community Intelligence Trend" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    {% cotton dashboard_widgets/widget_chart title="Crime Hotspots" / %}
+    {% cotton dashboard_widgets/widget_chart title="Community Intelligence Trend" / %}
 </div>
 
-
-<!-- ========================================================= -->
 <!-- AI -->
-<!-- ========================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
     {% include "cotton/ai/ai_summary.html" %}
-
     {% include "cotton/ai/ai_prediction_card.html" %}
-
 </div>
 
-
-<!-- ========================================================= -->
 <!-- WEATHER + TRAFFIC -->
-<!-- ========================================================= -->
-
-<div class="mt-6 grid gap-6 lg:grid-cols-2">
-
-    {% include "cotton/weather/weather_widget.html" %}
-
-    {% include "cotton/traffic/traffic_widget.html" %}
-
+<div class="mt-3 grid gap-3 lg:grid-cols-2">
+    <div hx-get="{% url 'weather-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
+    <div hx-get="{% url 'traffic-widget' %}" hx-trigger="load" hx-swap="outerHTML"><div class="animate-pulse h-32 rounded-xl bg-slate-100"></div></div>
 </div>
 
-
-<!-- ========================================================= -->
 <!-- TASKS -->
-<!-- ========================================================= -->
-
-<div class="mt-6">
-
+<div class="mt-3">
     {% include "cotton/tasks/task_table.html" %}
-
 </div>
 
-
-<!-- ========================================================= -->
 <!-- NOTIFICATIONS -->
-<!-- ========================================================= -->
-
-<div class="mt-6">
-
-    {% include "cotton/notifications/notification_list.html" %}
-
+<div class="mt-3">
+    {% include "dashboard/widgets/notification_list.html" %}
 </div>
 
 {% endblock %}

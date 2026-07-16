@@ -1,18 +1,12 @@
-from django.db import models
+from reports.models import Incident 
 from django.conf import settings
-from reports.models import Incident as Report
-from stations.models import PoliceStation, AmotekunStation
+from django.contrib.gis.db import models
+from django.utils import timezone
+
 
 
 class Dispatch(models.Model):
-    STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("dispatched", "Dispatched"),
-        ("in_progress", "In Progress"),
-        ("resolved", "Resolved"),
-        ("cancelled", "Cancelled"),
-    ]
-    
+ 
     # Valid status transitions
     VALID_TRANSITIONS = {
         "pending": ["dispatched", "cancelled"],
@@ -22,39 +16,156 @@ class Dispatch(models.Model):
         "cancelled": [],  # Terminal state
     }
     
-    incident = models.ForeignKey(
-        Report, on_delete=models.CASCADE, related_name="dispatches")
-    police_station = models.ForeignKey(
-        PoliceStation, on_delete=models.SET_NULL, null=True, blank=True, related_name="dispatches")
-    amotekun_station = models.ForeignKey(
-        AmotekunStation, on_delete=models.SET_NULL, null=True, blank=True, related_name="dispatches")
-    assigned_officer = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True, blank=True, 
-        limit_choices_to={"role": "OFFICER"},
-        related_name="assigned_dispatches")
-    assigned_dispatcher = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        on_delete=models.SET_NULL, 
-        null=True, blank=True, 
-        limit_choices_to={"role": "DISPATCHER"},
-        related_name="created_dispatches")
+
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("dispatched", "Dispatched"),
+        ("accepted", "Accepted"),
+        ("in_progress", "In Progress"),
+        ("resolved", "Resolved"),
+        ("cancelled", "Cancelled"),
+    ]
+
+    PRIORITY_CHOICES = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+        ("critical", "Critical"),
+    ]
+
+
+    incident = models.OneToOneField(
+        Incident,
+        on_delete=models.CASCADE,
+        related_name="dispatch",
+    )
+
+    reference = models.CharField(
+        max_length=30,
+        unique=True,
+        db_index=True,
+    )
+
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_CHOICES,
+        default="medium",
+        db_index=True,
+    )
+
     status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending")
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+        db_index=True,
+    )
+
+    dispatcher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dispatches_managed",
+    )
+
+    commander = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dispatches_authorized",
+    )
+
+    patrol_team = models.ForeignKey(
+        "patrol.PatrolTeam",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dispatches",
+    )
+
+    vehicle = models.ForeignKey(
+        "patrol.Vehicle",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="dispatches",
+    )
+
+    mission = models.OneToOneField(
+        "patrol.PatrolMission",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="linked_dispatch",
+    )
+
+    location = models.PointField(
+        srid=4326,
+        geography=True,
+        null=True,
+        blank=True,
+    )
+
+    state = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    lga = models.CharField(
+        max_length=100,
+        blank=True,
+    )
+
+    remarks = models.TextField(
+        blank=True,
+    )
+
     notes = models.TextField(blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    resolution_notes = models.TextField(blank=True, null=True)
+
+    accepted_at = models.DateTimeField(null=True, blank=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     dispatched_at = models.DateTimeField(null=True, blank=True)
     in_progress_at = models.DateTimeField(null=True, blank=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
+    arrival_at = models.DateTimeField(null=True, blank=True)
+    estimated_arrival_time = models.DateTimeField(null=True, blank=True)
+
+    accepted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="accepted_dispatches",
+    )
+
+    actual_response_minutes = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["status"]),
+            models.Index(fields=["priority"]),
+            models.Index(fields=["state"]),
+            models.Index(fields=["lga"]),
+        ]
 
     def __str__(self):
-        return f"Dispatch for {self.incident.title} - {self.status}"
-    
+        return self.reference
+
+    def save(self, *args, **kwargs):
+        if not self.reference:
+            timestamp = timezone.now().strftime("%d%m%Y")
+            self.reference = f"DISP-{timestamp}-{self.incident_id}"
+
+        super().save(*args, **kwargs)
+
+      
     def can_transition_to(self, new_status):
         """Check if status transition is valid"""
         valid_transitions = self.VALID_TRANSITIONS.get(self.status, [])
@@ -86,18 +197,6 @@ class Dispatch(models.Model):
         
         return old_status, new_status
     
-    def assign_officer(self, officer):
-        """Assign an officer to this dispatch"""
-        if officer.role != "OFFICER":
-            raise ValueError("Can only assign users with OFFICER role")
-        
-        self.assigned_officer = officer
-        if self.status == "pending":
-            self.transition_to("dispatched")
-        self.save()
-        
-        # Send notification to officer
-        self._send_assignment_notification(officer)
     
     def cancel(self, reason=""):
         """Cancel this dispatch"""
@@ -116,11 +215,11 @@ class Dispatch(models.Model):
             from notifications.services import notification_service
             
             # Notify assigned officer
-            if self.assigned_officer:
+            if self.dispatcher:
                 notification_service.send_notification(
-                    user=self.assigned_officer,
+                    user=self.dispatcher,
                     notification_type="dispatch_status_changed",
-                    title=f"Dispatch Status Updated",
+                    title="Dispatch Status Updated",
                     message=f"Dispatch for {self.incident.title} changed from {old_status} to {new_status}",
                     data={
                         "dispatch_id": self.id,
@@ -130,12 +229,12 @@ class Dispatch(models.Model):
                     }
                 )
             
-            # Notify dispatcher
-            if self.assigned_dispatcher:
+            # Notify patrol team dispatcher
+            if self.patrol_team:
                 notification_service.send_notification(
-                    user=self.assigned_dispatcher,
+                    user=self.patrol_team.dispatcher,
                     notification_type="dispatch_status_changed",
-                    title=f"Dispatch Status Updated",
+                    title="Dispatch Status Updated",
                     message=f"Dispatch for {self.incident.title} changed from {old_status} to {new_status}",
                     data={
                         "dispatch_id": self.id,
@@ -148,23 +247,39 @@ class Dispatch(models.Model):
             # Don't break dispatch workflow if notification fails
             pass
     
-    def _send_assignment_notification(self, officer):
-        """Send notification when officer is assigned"""
-        try:
-            from notifications.services import notification_service
-            
-            notification_service.send_notification(
-                user=officer,
-                notification_type="dispatch_assigned",
-                title="New Assignment",
-                message=f"You have been assigned to dispatch for {self.incident.title}",
-                data={
-                    "dispatch_id": self.id,
-                    "incident_id": self.incident.id,
-                    "incident_title": self.incident.title,
-                    "incident_type": self.incident.report_type
-                }
-            )
-        except Exception:
-            # Don't break assignment if notification fails
-            pass
+    
+class DispatchHistory(models.Model):
+
+    dispatch = models.ForeignKey(
+        Dispatch,
+        on_delete=models.CASCADE,
+        related_name="history",
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+
+    action = models.CharField(
+        max_length=150,
+    )
+
+    note = models.TextField(
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"{self.dispatch.reference} - {self.action}"
+
+
+        

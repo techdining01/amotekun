@@ -1,8 +1,30 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.views.decorators.http import require_POST
 from .models import ChatRoom, ChatMessage
 from .serializers import ChatRoomSerializer, ChatMessageSerializer
+
+
+@login_required
+@require_POST
+def chat_send_view(request):
+    content = request.POST.get('message', '').strip()
+    if not content:
+        return HttpResponse('')
+    room = ChatRoom.objects.first()
+    if not room:
+        room = ChatRoom.objects.create(name='General')
+    msg = ChatMessage.objects.create(room=room, sender=request.user, content=content)
+    return HttpResponse(
+        f'<div class="flex justify-end">'
+        f'<div class="max-w-[75%] rounded-2xl rounded-br-md px-4 py-2.5 bg-blue-600 text-white">'
+        f'<p class="text-sm">{msg.content}</p>'
+        f'<p class="text-xs mt-1 opacity-70 text-right">just now</p>'
+        f'</div></div>'
+    )
 
 
 class ChatRoomViewSet(viewsets.ModelViewSet):

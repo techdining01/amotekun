@@ -1,19 +1,42 @@
-<div class="overflow-x-auto rounded-xl border border-slate-200">
-
-    <table class="min-w-full divide-y divide-slate-200">
-
-        <thead class="bg-slate-50">
-
-            {{ thead }}
-
-        </thead>
-
-        <tbody class="divide-y divide-slate-100 bg-white">
-
-            {{ tbody }}
-
-        </tbody>
-
-    </table>
-
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div class="p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold">{{ title }}</h3>
+            {% if more_url %}
+            <a href="{{ more_url }}" class="text-sm text-sky-600 hover:text-sky-800 font-medium">View all →</a>
+            {% endif %}
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-slate-200">
+                        {% for header in headers %}
+                        <th class="text-left py-3 px-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            {{ header }}
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr class="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition">
+                        {% for cell in row %}
+                        <td class="py-3 px-4 text-sm text-slate-700">
+                            {{ cell }}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="{{ headers|length }}" class="py-8 text-center text-slate-400">
+                            <div class="text-4xl mb-2">📊</div>
+                            <p>No data available</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

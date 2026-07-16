@@ -1,0 +1,29 @@
+<div class="relative flex items-center justify-center">
+    <canvas id="{{ chart_id|default:'donut-chart' }}" class="{{ class|default:'h-64 w-64' }}"></canvas>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('{{ chart_id|default:"donut-chart" }}');
+    if (!ctx || !window.Chart) return;
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ labels|safe|default:'[]' }},
+            datasets: [{
+                data: {{ data|safe|default:'[]' }},
+                backgroundColor: ['#0ea5e9','#f59e0b','#ef4444','#10b981','#8b5cf6','#f97316'],
+                borderWidth: 0,
+                hoverOffset: 6,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: { position: 'bottom', labels: { padding: 16, font: { size: 12 } } }
+            }
+        }
+    });
+});
+</script>

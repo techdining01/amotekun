@@ -1,4 +1,6 @@
 from decouple import config
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -9,6 +11,12 @@ from .serializers import (
     CameraRecordingSerializer,
     CameraAlertSerializer,
 )
+
+
+@login_required
+def camera_grid_view(request):
+    cameras = Camera.objects.all().order_by('name')
+    return render(request, 'surveillance/camera_grid.html', {'cameras': cameras})
 
 
 class CameraPagination(PageNumberPagination):

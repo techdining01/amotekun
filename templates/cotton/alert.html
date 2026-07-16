@@ -1,27 +1,21 @@
-<div class="alert alert-{{ variant }} mb-4 p-4 rounded-lg {{ class }}">
-    <div class="flex">
-        <div class="flex-shrink-0">
-            {% if variant == 'success' %}
-                <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                </svg>
-            {% elif variant == 'error' %}
-                <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0 1 1 0 001.414-1.414l2-2a1 1 0 00-1.414-1.414z" clip-rule="evenodd" />
-                </svg>
-            {% elif variant == 'warning' %}
-                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.581 9.909c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.492-1.646-1.742-2.98l5.581-9.909zM11 13a1 1 0 100-2 1 1 0 000 2zM11 7a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                </svg>
-            {% elif variant == 'info' %}
-                <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0 1 1 0 001.414-1.414l2-2a1 1 0 00-1.414-1.414z" clip-rule="evenodd" />
-                </svg>
-            {% endif %}
-        </div>
-        <div class="ml-3">
-            <p class="text-sm font-medium text-{{ variant }}-800">{{ title }}</p>
-            <p class="mt-1 text-sm text-{{ variant }}-700">{{ message }}</p>
-        </div>
-    </div>
+{% if variant == 'success' %}
+<div class="flex gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 {{ class }}">
+    <svg class="h-5 w-5 shrink-0 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <div><p class="text-sm font-semibold text-emerald-800">{{ title }}</p><p class="mt-0.5 text-sm text-emerald-700">{{ message }}</p></div>
 </div>
+{% elif variant == 'error' %}
+<div class="flex gap-3 rounded-xl border border-red-200 bg-red-50 p-4 {{ class }}">
+    <svg class="h-5 w-5 shrink-0 text-red-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div><p class="text-sm font-semibold text-red-800">{{ title }}</p><p class="mt-0.5 text-sm text-red-700">{{ message }}</p></div>
+</div>
+{% elif variant == 'warning' %}
+<div class="flex gap-3 rounded-xl border border-yellow-200 bg-yellow-50 p-4 {{ class }}">
+    <svg class="h-5 w-5 shrink-0 text-yellow-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-7.82 13.5A2 2 0 004.18 20h15.64a2 2 0 001.71-2.64L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+    <div><p class="text-sm font-semibold text-yellow-800">{{ title }}</p><p class="mt-0.5 text-sm text-yellow-700">{{ message }}</p></div>
+</div>
+{% else %}
+<div class="flex gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 {{ class }}">
+    <svg class="h-5 w-5 shrink-0 text-blue-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+    <div><p class="text-sm font-semibold text-blue-800">{{ title }}</p><p class="mt-0.5 text-sm text-blue-700">{{ message }}</p></div>
+</div>
+{% endif %}

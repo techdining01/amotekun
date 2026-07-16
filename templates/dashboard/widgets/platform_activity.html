@@ -1,9 +1,29 @@
-<div class="space-y-3">
-
-    <div class="rounded-xl border p-4">
-
-        Waiting for platform events...
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+     hx-get="{% url 'live-platform-activity' %}" hx-trigger="load, every 15s" hx-swap="outerHTML">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">Platform Activity</h3>
+        <span class="flex items-center gap-1.5 text-xs font-medium text-sky-600">
+            <span class="h-2 w-2 rounded-full bg-sky-500 animate-pulse"></span> Live
+        </span>
     </div>
-
+    <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+        {% for event in events %}
+        <div class="flex items-start gap-3 px-5 py-3 hover:bg-slate-50 transition">
+            <div class="mt-1 h-2.5 w-2.5 rounded-full shrink-0
+                {% if event.type == 'incident' %}bg-red-500
+                {% elif event.type == 'dispatch' %}bg-blue-500
+                {% elif event.type == 'patrol' %}bg-emerald-500
+                {% else %}bg-slate-400{% endif %}"></div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-slate-800 truncate">{{ event.title }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ event.created_at|timesince }} ago</p>
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-10 text-center">
+            <span class="text-3xl mb-3">📡</span>
+            <p class="text-sm text-slate-500">Waiting for platform events...</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>

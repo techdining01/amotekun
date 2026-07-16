@@ -1,0 +1,184 @@
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" id="weather-widget-card">
+
+    <div class="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-gradient-to-r from-sky-50 to-blue-50">
+        <div class="flex items-center gap-2">
+            <span class="text-lg">🌤️</span>
+            <h3 class="font-semibold text-slate-800 text-sm">Weather — {{ city_name }}</h3>
+        </div>
+        <span class="flex items-center gap-1.5 text-xs font-medium text-slate-400">
+            <span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            Live 
+        </span>
+    </div>
+
+    <!-- City selector -->
+    <div class="px-5 pt-3">
+        <form hx-get="{% url 'weather-widget' %}" hx-target="#weather-widget-card" hx-swap="outerHTML" class="flex items-center gap-2">
+            <label class="text-xs text-slate-500 shrink-0">City:</label>
+            <select name="city" onchange="this.form.requestSubmit()"
+                    class="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-sky-300 bg-white">
+                {% for key, c in cities.items %}
+                <option value="{{ key }}" {% if key == selected_city %}selected{% endif %}>{{ c.name }}</option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
+
+    <div class="p-5">
+        {% if error %}
+        <div class="rounded-lg bg-red-50 border border-red-200 px-3 py-2">
+            <p class="text-sm text-red-600">⚠ {{ error }}</p>
+        </div>
+
+        {% elif current %}
+
+        <!-- Current temp + icon -->
+        <div class="flex items-center gap-3 mb-4">
+            <img src="{{ current.icon_url }}" alt="{{ current.phrase }}" class="h-16 w-16 shrink-0">
+            <div>
+                <p class="text-3xl font-bold text-slate-800 leading-none">{{ current.temperature|floatformat:1 }}°C</p>
+                <p class="text-sm text-slate-600 mt-0.5">{{ current.phrase }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">
+                    Feels {{ current.feels_like|floatformat:1 }}°C &nbsp;·&nbsp;
+                    {{ current.temp_min|floatformat:0 }}° / {{ current.temp_max|floatformat:0 }}°
+                </p>
+            </div>
+        </div>
+
+        <!-- Stats row -->
+        <div class="grid grid-cols-2 gap-2 mb-4">
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">Humidity</p>
+                <p class="text-base font-semibold text-slate-800">{{ current.humidity }}%</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">Wind</p>
+                <p class="text-base font-semibold text-slate-800">{{ current.wind_speed }} m/s
+                    {% if current.wind_direction %}<span class="text-xs text-slate-400">· {{ current.wind_direction }}°</span>{% endif %}
+                </p>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">Visibility</p>
+                <p class="text-base font-semibold text-slate-800">{{ current.visibility }} km</p>
+            </div>
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">Pressure</p>
+                <p class="text-base font-semibold text-slate-800">{{ current.pressure }} hPa</p>
+            </div>
+            {% if current.uv_index is not None %}
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">UV Index</p>
+                <p class="text-base font-semibold
+                    {% if current.uv_index >= 8 %}text-red-600
+                    {% elif current.uv_index >= 6 %}text-orange-500
+                    {% elif current.uv_index >= 3 %}text-yellow-600
+                    {% else %}text-green-600{% endif %}">
+                    {{ current.uv_index|floatformat:1 }}
+                    {% if current.uv_index >= 8 %}(Very High)
+                    {% elif current.uv_index >= 6 %}(High)
+                    {% elif current.uv_index >= 3 %}(Moderate)
+                    {% else %}(Low){% endif %}
+                </p>
+            </div>
+            {% endif %}
+            {% if current.aqi %}
+            <div class="rounded-xl bg-slate-50 px-3 py-2">
+                <p class="text-xs text-slate-400">Air Quality</p>
+                <p class="text-base font-semibold
+                    {% if current.aqi == 'Good' %}text-green-600
+                    {% elif current.aqi == 'Fair' %}text-yellow-600
+                    {% elif current.aqi == 'Moderate' %}text-orange-500
+                    {% else %}text-red-600{% endif %}">
+                    {{ current.aqi }}
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Rainfall -->
+        <div class="rounded-xl bg-blue-50 border border-blue-100 px-3 py-2 mb-4">
+            <div class="flex items-center gap-2 mb-1">
+                <span class="text-base">🌧️</span>
+                <p class="text-xs font-semibold text-blue-700">Rainfall</p>
+            </div>
+            <div class="flex gap-4">
+                <div>
+                    <p class="text-xs text-slate-400">Last 1h</p>
+                    <p class="text-sm font-bold text-blue-800">
+                        {% if current.rainfall_1h is not None %}{{ current.rainfall_1h }} mm{% else %}0 mm{% endif %}
+                    </p>
+                </div>
+                {% if current.rainfall_3h is not None %}
+                <div>
+                    <p class="text-xs text-slate-400">Last 3h</p>
+                    <p class="text-sm font-bold text-blue-800">{{ current.rainfall_3h }} mm</p>
+                </div>
+                {% endif %}
+                {% if current.snowfall_1h is not None %}
+                <div>
+                    <p class="text-xs text-slate-400">Snow 1h</p>
+                    <p class="text-sm font-bold text-indigo-700">{{ current.snowfall_1h }} mm</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sunlight -->
+        {% if current.sunrise %}
+        <div class="rounded-xl bg-yellow-50 border border-yellow-100 px-3 py-2 mb-4">
+            <div class="flex items-center gap-2 mb-2">
+                <span class="text-base">☀️</span>
+                <p class="text-xs font-semibold text-yellow-700">Sunlight Today</p>
+            </div>
+            <div class="grid grid-cols-3 gap-2 text-center mb-2">
+                <div>
+                    <p class="text-xs text-slate-400">Sunrise (UTC)</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ current.sunrise }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400">Sunset (UTC)</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ current.sunset }}</p>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400">Daylight</p>
+                    <p class="text-sm font-semibold text-slate-800">{{ current.sun_hours }} hrs</p>
+                </div>
+            </div>
+            <!-- Daylight bar -->
+            <div class="w-full bg-yellow-100 rounded-full h-2">
+                <div class="h-2 rounded-full bg-yellow-400"
+                     style="width: {% widthratio current.sun_hours 14 100 %}%"></div>
+            </div>
+            <p class="text-xs text-slate-400 mt-1">
+                Solar arc ≈ {{ current.sun_hours|floatformat:0 }}h × 15°/h
+                = ~{{ current.sun_hours|floatformat:0 }}° across sky today
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- 5-day forecast -->
+        {% if forecast %}
+        <p class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">5-Day Forecast</p>
+        <div class="grid grid-cols-5 gap-1">
+            {% for day in forecast %}
+            <div class="rounded-xl bg-slate-50 p-2 text-center">
+                <p class="text-xs text-slate-500">{{ day.date|date:"D" }}</p>
+                <img src="{{ day.icon_url }}" alt="{{ day.phrase }}" class="h-8 w-8 mx-auto">
+                <p class="text-sm font-bold text-slate-800">{{ day.max_temp|floatformat:0 }}°</p>
+                <p class="text-xs text-slate-400">{{ day.min_temp|floatformat:0 }}°</p>
+                {% if day.precipitation_probability %}
+                <p class="text-xs text-blue-500 mt-0.5">{{ day.precipitation_probability }}% 🌧</p>
+                {% endif %}
+                {% if day.rainfall_3h %}
+                <p class="text-xs text-blue-400">{{ day.rainfall_3h }}mm</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <p class="text-sm text-slate-400 text-center py-6">No weather data available.</p>
+        {% endif %}
+    </div>
+</div>

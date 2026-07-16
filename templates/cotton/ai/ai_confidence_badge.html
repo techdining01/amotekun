@@ -1,0 +1,13 @@
+{% if confidence >= 85 %}
+<span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-bold text-emerald-700">
+    ✓ {{ confidence }}% High
+</span>
+{% elif confidence >= 60 %}
+<span class="inline-flex items-center gap-1.5 rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-bold text-yellow-700">
+    ~ {{ confidence }}% Medium
+</span>
+{% else %}
+<span class="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">
+    ↓ {{ confidence }}% Low
+</span>
+{% endif %}

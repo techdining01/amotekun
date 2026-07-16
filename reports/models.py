@@ -1,5 +1,4 @@
-from django.db import models
-from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.db import models
 from django.conf import settings
 
 
@@ -10,6 +9,27 @@ class Incident(models.Model):
         ("fire", "Fire"),
         ("flood", "Flood"),
         ("accident", "Accident"),
+        ("Other", "Other"),
+    ]
+
+    STATUS_CHOICES = [
+        ("pending","Pending"),
+        ("verified","Verified"),
+        ("dispatched","Dispatched"),
+        ("resolved","Resolved"),
+        ("closed","Closed"),
+    ]
+    
+    PRIORITY_LEVELS = [
+        ("low","Low"),
+        ("medium","Medium"),
+        ("high","High"),
+        ("critical","Critical"),
+    ]
+
+    MEDIA_TYPES = [
+        ('image', 'Image'),
+        ('video', 'Video'),
     ]
 
     reporter = models.ForeignKey(
@@ -19,13 +39,58 @@ class Incident(models.Model):
         blank=True,
         related_name="reported_incidents",
     )
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pending",
+    )
+
+    priority = models.CharField(
+        max_length=20,
+        choices=PRIORITY_LEVELS,
+        default="medium",
+    )
+
+    assigned_team = models.ForeignKey(
+        "patrol.PatrolTeam",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
+    dispatcher = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="dispatched_incidents",
+        on_delete=models.SET_NULL,
+    )
     title = models.CharField(max_length=50)
     description = models.TextField()
     report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
-    geometry = gis_models.PointField(srid=4326, geography=True)
+    media_type = models.CharField(max_length=40, choices=MEDIA_TYPES)
+    file = models.FileField(upload_to='incidents/%d/%m/%Y/')
+    geometry = models.PointField(srid=4326, geography=True)
     state = models.CharField(max_length=70)
     lga = models.CharField(max_length=70)
     created_at = models.DateTimeField(auto_now_add=True)
+    verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="verified_incidents",
+    )
+
+    verified_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    
+    resolved_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
 
     def __str__(self):
         return self.title
@@ -49,40 +114,52 @@ class IncidentMedia(models.Model):
     def __str__(self):
         return f"{self.media_type} for {self.incident.title}"
 
+class IncidentHistory(models.Model):
 
+    incident = models.ForeignKey(
+        Incident,
+        related_name="history",
+        on_delete=models.CASCADE,
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+
+    action = models.CharField(max_length=100)
+
+    note = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+        
 class FloodZone(models.Model):
+
+    RISK_LEVELS = [
+        ("low", "Low"),
+        ("medium", "Medium"),
+        ("high", "High"),
+    ]
+
     name = models.CharField(max_length=100)
-    geometry = gis_models.PointField(srid=4326, geography=True)
+    geometry = models.PointField(srid=4326, geography=True)
     risk_level = models.CharField(
         max_length=50,
-        choices=[("low", "Low"), ("medium", "Medium"), ("high", "High")],
+        choices=RISK_LEVELS,
         default="low",
     )
 
     def __str__(self):
         return self.name
 
-
-class CrimeHotspot(models.Model):
-    name = models.CharField(max_length=255)
-    geometry = gis_models.PointField(srid=4326, geography=True)
-    severity = models.IntegerField(default=1)
-
-    def __str__(self):
-        return f" {self.name}: {self.severity}"
-
-
-class Road(models.Model):
-    name = models.CharField(max_length=255)
-    geometry = gis_models.LineStringField(srid=4326, geography=True)
-
-    def __str__(self):
-        return self.name
-
-
 class State(models.Model):
     name = models.CharField(max_length=100)
-    geometry = gis_models.MultiPolygonField(srid=4326, geography=True)
+    geometry = models.MultiPolygonField(srid=4326, geography=True)
 
     def __str__(self):
         return self.name
@@ -94,7 +171,7 @@ class LGA(models.Model):
     )
     name = models.CharField(max_length=100)
 
-    geometry = gis_models.MultiPolygonField(srid=4326, null=True, blank=True)
+    geometry = models.MultiPolygonField(srid=4326, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -106,7 +183,7 @@ class Ward(models.Model):
 
     name = models.CharField(max_length=150)
 
-    geometry = gis_models.GeometryField(srid=4326)
+    geometry = models.GeometryField(srid=4326)
 
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

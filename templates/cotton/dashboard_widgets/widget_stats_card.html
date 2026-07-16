@@ -1,0 +1,19 @@
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 hover:shadow-lg transition">
+    <div class="flex items-center justify-between">
+        <div>
+            <p class="text-sm text-slate-500">{{ title }}</p>
+            <p class="mt-1 text-2xl font-bold {% if color == 'blue' %}text-blue-600{% elif color == 'green' %}text-green-600{% elif color == 'yellow' %}text-yellow-600{% elif color == 'red' %}text-red-600{% else %}text-slate-800{% endif %}">
+                {{ value|default:"—" }}
+            </p>
+            {% if change %}
+            <p class="mt-1 text-xs {% if change > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                {% if change > 0 %}↑{% else %}↓{% endif %} {{ change }}% from last month
+            </p>
+            {% endif %}
+        </div>
+        <div class="h-10 w-10 rounded-xl flex items-center justify-center text-xl
+                     {% if color == 'blue' %}bg-blue-100{% elif color == 'green' %}bg-green-100{% elif color == 'yellow' %}bg-yellow-100{% elif color == 'red' %}bg-red-100{% else %}bg-slate-100{% endif %}">
+            {% if icon == 'document' %}📄{% elif icon == 'shield' %}🛡️{% elif icon == 'check-circle' %}✅{% elif icon == 'bell' %}🔔{% elif icon == 'users' %}👥{% elif icon == 'chart' %}📊{% elif icon == 'map' %}🗺️{% elif icon == 'clock' %}⏱️{% else %}📋{% endif %}
+        </div>
+    </div>
+</div>

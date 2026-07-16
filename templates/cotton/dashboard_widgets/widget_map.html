@@ -1,18 +1,34 @@
+{% load static %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+
 <div class="relative overflow-hidden rounded-xl border border-slate-200">
 
     <div
-        id="{{ map_id }}"
-        class="{{ class|default:'h-[600px] w-full' }}">
+        id="{{ map_id|default:'dashboard-map' }}"
+        class="{{ class|default:'h-[500px] w-full' }}">
     </div>
 
     {% if toolbar %}
-
         <div class="absolute left-4 top-4 z-[500]">
-
             {{ toolbar }}
-
         </div>
-
     {% endif %}
 
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+(function() {
+    const mapId = '{{ map_id|default:"dashboard-map" }}';
+    if (window['map_' + mapId]) return;
+    const lat = {{ center_lat|default:"7.5" }};
+    const lng = {{ center_lng|default:"4.5" }};
+    const zoom = {{ zoom|default:"7" }};
+    const m = L.map(mapId, { zoomControl: true }).setView([lat, lng], zoom);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors © CARTO'
+    }).addTo(m);
+    window['map_' + mapId] = m;
+})();
+</script>

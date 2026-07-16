@@ -5,32 +5,48 @@
 
 class SoundAlerts {
     constructor() {
-        this.sounds = {
-            chat: new Audio('/static/audio/notification.mp3'),
-            crime: new Audio('/static/audio/police_siren_sound_effect.mp3'),
-            violence: new Audio('/static/audio/warning.mp3'),
-            fire: new Audio('/static/audio/emergency_warning_system_united_states.mp3'),
-            flood: new Audio('/static/audio/emergency_warning_system_united_states.mp3'),
-            accident: new Audio('/static/audio/community_ambulance.mp3'),
+        // Lazy-load: don't create Audio objects until first user interaction
+        this._srcs = {
+            chat:     '/static/audio/notification.mp3',
+            crime:    '/static/audio/police_siren_sound_effect.mp3',
+            violence: '/static/audio/warning.mp3',
+            fire:     '/static/audio/emergency_warning_system_united_states.mp3',
+            flood:    '/static/audio/emergency_warning_system_united_states.mp3',
+            accident: '/static/audio/community_ambulance.mp3',
         };
-        
+        this.sounds = {};
         this.enabled = true;
-        this.volume = 0.5;
+        this.volume = 0.7;
         this.currentlyPlaying = null;
-        
-        // Set initial volume
-        Object.values(this.sounds).forEach(sound => {
-            sound.volume = this.volume;
-        });
-        
-        // Track when sounds end
-        Object.entries(this.sounds).forEach(([key, sound]) => {
-            sound.addEventListener('ended', () => {
-                if (this.currentlyPlaying === key) {
-                    this.currentlyPlaying = null;
+        this._unlocked = false;
+
+        // Unlock audio context on first user gesture
+        const unlock = () => {
+            if (this._unlocked) return;
+            this._unlocked = true;
+            // Pre-load all sounds silently
+            Object.entries(this._srcs).forEach(([key, src]) => {
+                if (!this.sounds[key]) {
+                    const a = new Audio(src);
+                    a.volume = 0;
+                    a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = this.volume; }).catch(() => {});
+                    a.addEventListener('ended', () => { if (this.currentlyPlaying === key) this.currentlyPlaying = null; });
+                    this.sounds[key] = a;
                 }
             });
-        });
+            ['click','keydown','touchstart','pointerdown'].forEach(e => document.removeEventListener(e, unlock));
+        };
+        ['click','keydown','touchstart','pointerdown'].forEach(e => document.addEventListener(e, unlock, { once: false, passive: true }));
+    }
+
+    _getSound(key) {
+        if (!this.sounds[key] && this._srcs[key]) {
+            const a = new Audio(this._srcs[key]);
+            a.volume = this.volume;
+            a.addEventListener('ended', () => { if (this.currentlyPlaying === key) this.currentlyPlaying = null; });
+            this.sounds[key] = a;
+        }
+        return this.sounds[key] || null;
     }
     
     /**
@@ -39,17 +55,19 @@ class SoundAlerts {
      * @param {number} volume - Optional volume override (0.0 to 1.0)
      */
     play(soundKey, volume = null) {
-        if (!this.enabled || !this.sounds[soundKey]) return;
-        
-        // Stop currently playing sound
+        if (!this.enabled) return;
         this.stopAll();
-        
-        const sound = this.sounds[soundKey];
+        const sound = this._getSound(soundKey);
+        if (!sound) return;
         sound.currentTime = 0;
         sound.volume = volume !== null ? volume : this.volume;
         this.currentlyPlaying = soundKey;
-        
-        sound.play().catch(e => console.log('Audio play failed:', e));
+        const p = sound.play();
+        if (p && p.catch) p.catch(() => {
+            // Autoplay blocked — queue for next interaction
+            const retry = () => { sound.play().catch(() => {}); document.removeEventListener('click', retry); };
+            document.addEventListener('click', retry, { once: true });
+        });
     }
     
     /**
@@ -158,99 +176,32 @@ class SoundAlerts {
         }
     }
     
-    /**
-     * Stop all playing sounds
-     */
     stopAll() {
-        Object.values(this.sounds).forEach(sound => {
-            sound.pause();
-            sound.currentTime = 0;
-        });
+        Object.values(this.sounds).forEach(sound => { sound.pause(); sound.currentTime = 0; });
         this.currentlyPlaying = null;
     }
-    
-    /**
-     * Stop currently playing sound
-     */
+
     stop() {
-        if (this.currentlyPlaying && this.sounds[this.currentlyPlaying]) {
-            const sound = this.sounds[this.currentlyPlaying];
-            sound.pause();
-            sound.currentTime = 0;
-            this.currentlyPlaying = null;
-        }
+        const sound = this.sounds[this.currentlyPlaying];
+        if (sound) { sound.pause(); sound.currentTime = 0; }
+        this.currentlyPlaying = null;
     }
-    
-    /**
-     * Pause currently playing sound (can be resumed)
-     */
-    pause() {
-        if (this.currentlyPlaying && this.sounds[this.currentlyPlaying]) {
-            this.sounds[this.currentlyPlaying].pause();
-        }
-    }
-    
-    /**
-     * Resume paused sound
-     */
-    resume() {
-        if (this.currentlyPlaying && this.sounds[this.currentlyPlaying]) {
-            this.sounds[this.currentlyPlaying].play()
-                .catch(e => console.log('Audio resume failed:', e));
-        }
-    }
-    
-    /**
-     * Check if a sound is currently playing
-     * @returns {boolean}
-     */
-    isPlaying() {
-        return this.currentlyPlaying !== null;
-    }
-    
-    /**
-     * Get currently playing sound key
-     * @returns {string|null}
-     */
-    getCurrentSound() {
-        return this.currentlyPlaying;
-    }
-    
-    /**
-     * Enable or disable sound alerts
-     * @param {boolean} enabled
-     */
-    setEnabled(enabled) {
-        this.enabled = enabled;
-        if (!enabled) {
-            this.stopAll();
-        }
-    }
-    
-    /**
-     * Set master volume
-     * @param {number} volume - 0.0 to 1.0
-     */
+
+    setEnabled(enabled) { this.enabled = enabled; if (!enabled) this.stopAll(); }
+
     setVolume(volume) {
         this.volume = Math.max(0, Math.min(1, volume));
-        Object.values(this.sounds).forEach(sound => {
-            sound.volume = this.volume;
-        });
+        Object.values(this.sounds).forEach(s => { s.volume = this.volume; });
     }
-    
-    /**
-     * Get current volume
-     * @returns {number}
-     */
-    getVolume() {
-        return this.volume;
-    }
+
+    getVolume() { return this.volume; }
+    isPlaying() { return this.currentlyPlaying !== null; }
+    getCurrentSound() { return this.currentlyPlaying; }
 }
 
 // Global instance
 const soundAlerts = new SoundAlerts();
 
-// Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = soundAlerts;
 }

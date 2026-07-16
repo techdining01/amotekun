@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.response import Response
-from .prediction import PredictionService
+from .services.prediction_service import PredictionService
 
 
 class HotspotViewSet(viewsets.ReadOnlyModelViewSet):

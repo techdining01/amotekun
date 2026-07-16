@@ -7,7 +7,6 @@ def security_center_widget(request):
         "dashboard/widgets/security_center.html",
     )
 
-
 def api_health_widget(request):
     return render(
         request,

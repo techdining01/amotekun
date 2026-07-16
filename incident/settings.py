@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 from decouple import config
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -77,6 +78,7 @@ INSTALLED_APPS = [
     "traffic",
     "mobile",
     "dashboard",
+    "patrol",
 ]
 
 MIDDLEWARE = [
@@ -93,9 +95,9 @@ MIDDLEWARE = [
 ]
 
 # django-allauth settings
-AUTH_USER_MODEL = "dashboard.User"
+AUTH_USER_MODEL = "accounts.User"
 ACCOUNT_FORMS = {
-    'signup': 'dashboard.forms.CustomSignupForm',
+    'signup': 'accounts.forms.CustomSignupForm',
 }
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
@@ -107,7 +109,7 @@ SITE_ID = 1
 # # allauth account settings
 SIGNUP_FIELDS = ["email*", "username*", "password1*", "password2*"]
 LOGIN_METHODS = {"email", "username"}
-EMAIL_VERIFICATION = "mandatory"
+EMAIL_VERIFICATION = "none"
 SESSION_REMEMBER = True
 
 SOCIALACCOUNT_QUERY_EMAIL = True
@@ -118,6 +120,10 @@ SOCIALACCOUNT_PROVIDERS = {}
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 
 ROOT_URLCONF = "incident.urls"
+
+def google_map_key_context(request):
+    from decouple import config
+    return {"GOOGLE_MAP_API_KEY": config("GOOGLE_MAP_API_KEY", default="")}
 
 TEMPLATES = [
     {
@@ -130,6 +136,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "incident.settings.google_map_key_context",  # Add our custom context processor
             ],
         },
     }
@@ -139,19 +146,34 @@ ASGI_APPLICATION = "incident.asgi.application"
 WSGI_APPLICATION = "incident.wsgi.application"
 
 # Django Channels configuration
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                (
-                    config("REDIS_HOST", default="127.0.0.1"),
-                    int(config("REDIS_PORT", default=6379)),
-                )
-            ],
+try:
+    import redis as _redis_check
+    _r = _redis_check.Redis(host=config("REDIS_HOST", default="127.0.0.1"), port=int(config("REDIS_PORT", default=6379)), socket_connect_timeout=2)
+    _r.ping()
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [{
+                    "host": config("REDIS_HOST", default="127.0.0.1"),
+                    "port": int(config("REDIS_PORT", default=6379)),
+                    "socket_keepalive": True,
+                    "socket_connect_timeout": 5,
+                    "socket_timeout": 30,
+                    "health_check_interval": 30,
+                    "retry_on_timeout": True,
+                }],
+                "capacity": 1500,
+                "expiry": 60,
+            },
         },
-    },
-}
+    }
+except Exception:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 
 # Database
@@ -212,6 +234,7 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGOUT_REDIRECT_URL = "/"
+LOGIN_URL = "/accounts/login/"
 
 # Celery configuration
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default="redis://127.0.0.1:6379/0")
@@ -231,8 +254,52 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": 300.0,
         "options": {"queue": "surveillance"},
     },
+    "patrol-heartbeat": {
+        "task": "patrol.tasks.patrol_heartbeat",
+        "schedule": 60.0,
+    },
+    "gps-cleanup": {
+        "task": "patrol.tasks.cleanup_old_gps",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "patrol-dashboard-cache": {
+        "task": "patrol.tasks.refresh_dashboard",
+        "schedule": 30.0,
+    },
+    "patrol-shift-reminders": {
+        "task": "patrol.tasks.shift_reminders",
+        "schedule": crontab(hour=7, minute=0),
+    },
+    "patrol-daily-report": {
+        "task": "patrol.tasks.generate_daily_report",
+        "schedule": crontab(hour=23, minute=0),
+    },
 }
 
+
+# Cache — use Redis if available, fall back to LocMemCache
+try:
+    import redis as _rc
+    _rc.Redis(
+        host=config("REDIS_HOST", default="127.0.0.1"),
+        port=int(config("REDIS_PORT", default=6379)),
+        socket_connect_timeout=2,
+    ).ping()
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": f"redis://{config('REDIS_HOST', default='127.0.0.1')}:{config('REDIS_PORT', default=6379)}/2",
+            "TIMEOUT": 300,
+            "OPTIONS": {"socket_connect_timeout": 5, "socket_timeout": 5},
+        }
+    }
+except Exception:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "amotekun-default",
+        }
+    }
 
 # REST Framework authentication
 REST_FRAMEWORK = {

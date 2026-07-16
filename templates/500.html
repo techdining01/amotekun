@@ -1,0 +1,51 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Error | Amotekun</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body{font-family:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif}
+        body::before{content:'';position:fixed;inset:0;z-index:-1;
+            background:radial-gradient(ellipse 80% 60% at 50% -10%,rgba(14,165,233,.18) 0%,transparent 70%),
+                       radial-gradient(ellipse 60% 50% at 90% 100%,rgba(99,102,241,.15) 0%,transparent 70%),
+                       #020617}
+    </style>
+</head>
+<body class="min-h-screen text-slate-100 antialiased flex flex-col items-center justify-center px-4">
+
+    <div class="text-center max-w-md">
+        <div class="text-8xl mb-6">⚠️</div>
+        <h1 class="text-6xl font-bold text-red-400 mb-4">500</h1>
+        <h2 class="text-2xl font-bold mb-4">Server Error</h2>
+        <p class="text-slate-400 mb-8">
+            Something went wrong on our end. Our team has been notified and is working to fix the issue.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a href="{% url 'home' %}" class="rounded-xl bg-sky-600 px-6 py-3 text-white font-semibold hover:bg-sky-500 transition">
+                Go Home
+            </a>
+            <a href="javascript:location.reload()" class="rounded-xl border border-slate-600 px-6 py-3 text-white hover:border-slate-400 transition">
+                Try Again
+            </a>
+        </div>
+        
+        <div class="mt-12 pt-8 border-t border-slate-800">
+            <p class="text-sm text-slate-600">
+                Error ID: <span class="font-mono text-slate-500">{{ error_id|default:"Unknown" }}</span>
+            </p>
+            <p class="text-sm text-slate-600 mt-2">
+                Need immediate help? <a href="tel:112" class="text-sky-400 hover:text-sky-300">Call Emergency: 112</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

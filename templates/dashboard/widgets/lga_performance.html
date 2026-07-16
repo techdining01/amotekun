@@ -1,5 +1,27 @@
-<div class="rounded-xl border p-4">
-
-    LGA ranking unavailable.
-
+<div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+        <h3 class="font-semibold text-slate-800">LGA Performance</h3>
+        <span class="text-xs text-slate-500">By incident count</span>
+    </div>
+    <div class="divide-y divide-slate-100 max-h-80 overflow-y-auto">
+        {% for lga in lga_stats %}
+        <div class="flex items-center gap-4 px-5 py-3">
+            <span class="w-5 text-xs font-bold text-slate-400 shrink-0">{{ forloop.counter }}</span>
+            <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between mb-1">
+                    <p class="text-sm font-medium text-slate-800 truncate">{{ lga.lga }}</p>
+                    <span class="text-xs font-bold text-slate-700 ml-2 shrink-0">{{ lga.count }}</span>
+                </div>
+                <div class="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                    <div class="h-full rounded-full bg-blue-500 transition-all duration-700"
+                         style="width:{{ lga.percent|default:0 }}%"></div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex flex-col items-center justify-center py-10 text-center">
+            <p class="text-sm text-slate-500">LGA ranking unavailable.</p>
+        </div>
+        {% endfor %}
+    </div>
 </div>

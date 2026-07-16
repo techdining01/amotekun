@@ -1,5 +1,4 @@
-from django.db import models
-from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.db import models 
 from django.conf import settings
 from cryptography.fernet import Fernet
 import base64
@@ -35,7 +34,7 @@ class Camera(models.Model):
     model = models.CharField(max_length=100, blank=True)
     
     # Location
-    location = gis_models.PointField(srid=4326, help_text="Camera GPS coordinates")
+    location = models.PointField(srid=4326, help_text="Camera GPS coordinates")
     address = models.CharField(max_length=255, blank=True)
     city = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=100, blank=True)
@@ -139,7 +138,6 @@ class Camera(models.Model):
             # Derive a proper key from the SECRET_KEY
             from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
             from cryptography.hazmat.primitives import hashes
-            import os
             
             salt = b'amotekun_camera_encryption'  # Fixed salt for consistency
             kdf = PBKDF2HMAC(
@@ -171,7 +169,6 @@ class Camera(models.Model):
             # Derive the same key as in set_password
             from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
             from cryptography.hazmat.primitives import hashes
-            import os
             
             salt = b'amotekun_camera_encryption'
             kdf = PBKDF2HMAC(

@@ -1,168 +1,653 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" x-data="landingApp()" x-cloak>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amotekun Network</title>
+    <title>Amotekun — South West Nigeria Security Network</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10" defer></script>
+    <style>
+        [x-cloak]{display:none!important}
+        body{
+            font-family:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif;
+            background:#020617;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14,165,233,.22) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 90% 110%, rgba(99,102,241,.18) 0%, transparent 65%),
+                radial-gradient(ellipse 40% 35% at 10% 80%, rgba(6,182,212,.12) 0%, transparent 60%);
+        }
+        .glass{background:rgba(15,23,42,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08)}
+        .feature-card{
+            transition:transform .3s ease,box-shadow .3s ease,background .3s ease;
+            background:rgba(15,23,42,.72);
+        }
+        .feature-card:hover{
+            transform:translateY(-6px);
+            background:rgba(14,165,233,.08);
+            box-shadow:0 0 0 1px rgba(14,165,233,.25),0 20px 40px -12px rgba(14,165,233,.2);
+        }
+        .stat-card{
+            background:linear-gradient(135deg,rgba(14,165,233,.08) 0%,rgba(99,102,241,.08) 100%);
+            backdrop-filter:blur(8px);
+            transition:transform .3s ease,box-shadow .3s ease,background .3s ease;
+        }
+        .stat-card:hover{
+            transform:translateY(-4px) scale(1.03);
+            background:linear-gradient(135deg,rgba(14,165,233,.18) 0%,rgba(99,102,241,.15) 100%);
+            box-shadow:0 0 0 1px rgba(14,165,233,.3),0 16px 32px -8px rgba(14,165,233,.25);
+        }
+        .service-card{
+            transition:transform .3s ease,box-shadow .3s ease,background .3s ease;
+        }
+        .service-card:hover{
+            transform:translateY(-4px);
+            background:rgba(14,165,233,.07);
+            box-shadow:0 0 0 1px rgba(14,165,233,.2),0 16px 32px -8px rgba(14,165,233,.15);
+        }
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-         integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-         crossorigin=""/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.css" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster/dist/MarkerCluster.Default.css" />
-
-    <link rel="stylesheet" href="{% static 'css/output.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+        /* Badge animations */
+        @keyframes badge-glow {
+            0%,100%{box-shadow:0 0 0 0 rgba(14,165,233,0);}
+            50%{box-shadow:0 0 16px 4px rgba(14,165,233,.25);}
+        }
+        @keyframes ticker {
+            0%{transform:translateX(0)}
+            100%{transform:translateX(-50%)}
+        }
+        @keyframes float-dot {
+            0%,100%{transform:scale(1);opacity:1}
+            50%{transform:scale(1.6);opacity:.6}
+        }
+        @keyframes slide-up {
+            from{opacity:0;transform:translateY(24px)}
+            to{opacity:1;transform:translateY(0)}
+        }
+        .badge-glow{animation:badge-glow 3s ease-in-out infinite}
+        .ticker-wrap{overflow:hidden;white-space:nowrap}
+        .ticker-inner{display:inline-flex;animation:ticker 22s linear infinite}
+        .ticker-inner:hover{animation-play-state:paused}
+        .float-dot{animation:float-dot 2s ease-in-out infinite}
+        .hero-animate{animation:slide-up .7s ease both}
+        .hero-animate-2{animation:slide-up .7s .15s ease both}
+        .hero-animate-3{animation:slide-up .7s .3s ease both}
+        .hero-animate-4{animation:slide-up .7s .45s ease both}
+    </style>
 </head>
-<body class="relative">
-    <div id="map"></div>
-    
-    <div id="incidents-list" class="hidden"></div>
-    <div id="dispatches-list" class="hidden"></div>
+<body class="relative overflow-x-hidden text-white">
 
-    <div id="action-buttons" style="position: fixed; bottom: 32px; right: 32px; z-index: 9999; display: flex; flex-direction: column; gap: 8px;">
-        <button id="dispatch-btn" type="button" style="background: #16a34a; color: white; width: 56px; height: 56px; border-radius: 50%; border: 2px solid white; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 9px;">
-            Dispatch
-        </button>
-        <button id="incident-btn" type="button" style="background: #2563eb; color: white; width: 56px; height: 56px; border-radius: 50%; border: 2px solid white; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); font-size: 9px;">
-            Report
-        </button>
-    </div>
+<!-- ── TOPBAR ──────────────────────────────────────────── -->
+<header class="fixed top-0 inset-x-0 z-50 flex items-center justify-between px-4 md:px-8 h-16 glass">
+    <a href="{% url 'home' %}" class="flex items-center gap-2 font-bold text-lg tracking-widest uppercase text-sky-400">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+        </svg>
+        Amotekun
+    </a>
 
-    <!-- Login link for role-based access -->
-    <div style="position: fixed; top: 16px; left: 40px; z-index: 9999;">
+    <nav class="hidden md:flex items-center gap-6 text-sm text-slate-300">
+        <button @click="scrollToSection('features')" class="transition hover:text-white">Features</button>
+        <button @click="scrollToSection('services')" class="transition hover:text-white">Services</button>
+        <button @click="scrollToSection('stats')" class="transition hover:text-white">Statistics</button>
+        <button @click="panel='weather'" :class="panel==='weather'?'text-sky-400':'hover:text-white'" class="transition">Weather</button>
+        <button @click="panel='traffic'" :class="panel==='traffic'?'text-sky-400':'hover:text-white'" class="transition">Traffic</button>
+        <button @click="openReport()" class="transition hover:text-white">Report Incident</button>
+    </nav>
+
+    <div class="flex items-center gap-3">
         {% if user.is_authenticated %}
-            <a href="{% url 'home' %}" style="padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 6px; text-decoration: none; font-size: 14px; color: #374151;">{{ user.username }} ({{ user.get_role_display }})</a>
-            <a href="{% url 'account_logout' %}" style="padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 6px; text-decoration: none; font-size: 14px; color: #dc2626; margin-left: 8px;">Logout</a>
+            <a href="{% url 'admin-dashboard' %}" class="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold hover:bg-sky-500 transition">Dashboard</a>
+            <a href="{% url 'account_logout' %}" class="rounded-xl border border-slate-600 px-4 py-2 text-sm hover:border-slate-400 transition">Logout</a>
         {% else %}
-            <a href="{% url 'account_login' %}" style="padding: 8px 12px; background: rgba(255,255,255,0.9); border-radius: 6px; text-decoration: none; font-size: 14px; color: #2563eb;">Login</a>
+            <a href="{% url 'account_login' %}" class="rounded-xl border border-slate-600 px-4 py-2 text-sm hover:border-slate-400 transition">Login</a>
+            <a href="{% url 'account_signup' %}" class="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold hover:bg-sky-500 transition">Sign Up</a>
         {% endif %}
     </div>
+</header>
 
-    <!-- Incident Sidebar (docked) -->
-    <div id="incident-sidebar" style="display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 380px; z-index: 9998; background: white; box-shadow: -4px 0 6px -1px rgba(0,0,0,0.1); overflow-y: auto;">
-        <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="font-size: 18px; font-weight: 600; color: #111827;">Report New Incident</h2>
-            <button type="button" onclick="document.getElementById('incident-sidebar').style.display='none'" style="padding: 4px;">
-                <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+<!-- ── HERO ────────────────────────────────────────────── -->
+<section class="relative z-10 flex flex-col items-center justify-center min-h-screen text-center px-4 pt-16">
+    <div class="max-w-4xl mx-auto">
+
+        <!-- Animated live badge -->
+        <div class="hero-animate mb-8">
+            <div class="badge-glow inline-flex items-center gap-3 rounded-full border border-sky-500/30 bg-sky-500/10 px-5 py-2 text-xs font-semibold text-sky-300">
+                <!-- Pulsing dot cluster -->
+                <span class="relative flex h-3 w-3">
+                    <span class="absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-60 animate-ping"></span>
+                    <span class="float-dot relative inline-flex h-3 w-3 rounded-full bg-sky-400"></span>
+                </span>
+                <!-- Scrolling ticker -->
+                <span class="ticker-wrap max-w-[260px] sm:max-w-xs">
+                    <span class="ticker-inner gap-10">
+                        <span class="pr-10">Live Security Network &mdash; South West Nigeria</span>
+                        <span class="pr-10">Lagos &bull; Ogun &bull; Oyo &bull; Osun &bull; Ondo &bull; Ekiti</span>
+                        <span class="pr-10">Live Security Network &mdash; South West Nigeria</span>
+                        <span class="pr-10">Lagos &bull; Ogun &bull; Oyo &bull; Osun &bull; Ondo &bull; Ekiti</span>
+                    </span>
+                </span>
+                <span class="shrink-0 rounded-full bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 text-emerald-400 text-[10px] font-bold tracking-wide">LIVE</span>
+            </div>
+        </div>
+
+        <h1 class="hero-animate-2 text-4xl md:text-6xl font-extrabold tracking-tight leading-tight">
+            Protecting Communities<br>
+            <span class="text-sky-400">Across the South West</span>
+        </h1>
+        <p class="hero-animate-3 mt-6 text-lg text-slate-300 max-w-2xl mx-auto">
+            Advanced security intelligence platform for real-time incident reporting, emergency response coordination, and community safety monitoring. Built for the future of public safety.
+        </p>
+        <div class="hero-animate-4 mt-10 flex flex-wrap items-center justify-center gap-4">
+            <button @click="openReport()" class="rounded-2xl bg-red-600 px-8 py-4 text-base font-bold hover:bg-red-500 shadow-xl shadow-red-900/40 transition active:scale-95">
+                🚨 Report Emergency
+            </button>
+            <button @click="panel='weather'" class="rounded-2xl glass px-8 py-4 text-base font-semibold hover:bg-white/10 transition">
+                🌤 Check Weather
+            </button>
+            <button @click="panel='traffic'" class="rounded-2xl glass px-8 py-4 text-base font-semibold hover:bg-white/10 transition">
+                🚦 Traffic Status
             </button>
         </div>
-        <div style="padding: 20px;">
-            <form hx-post="{% url 'incident-create' %}" hx-target="#incidents-list" hx-swap="innerHTML">
-                {% csrf_token %}
-                <div style="margin-bottom: 14px;">
-                    <label for="title" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Title</label>
-                    <input type="text" name="title" id="title" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="description" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Description</label>
-                    <textarea name="description" id="description" rows="2" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="report_type" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Type</label>
-                    <select name="report_type" id="report_type" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <option value="crime">Crime</option>
-                        <option value="violence">Violence</option>
-                        <option value="fire">Fire</option>
-                        <option value="flood">Flood</option>
-                        <option value="accident">Accident</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="location-search" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Location</label>
-                    <div style="display: flex; gap: 6px;">
-                        <input type="text" name="location_search" id="location_search" placeholder="Enter address..." style="flex: 1; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <button type="button" id="geocode-btn" style="padding: 0 12px; background: #6b7280; color: white; border-radius: 6px; font-size: 12px;">Go</button>
-                    </div>
-                </div>
-                <div style="margin-bottom: 14px; display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <label for="latitude" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Lat</label>
-                        <input type="number" step="any" name="latitude" id="latitude" readonly style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; font-size: 13px;">
-                    </div>
-                    <div style="flex: 1;">
-                        <label for="longitude" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Lng</label>
-                        <input type="number" step="any" name="longitude" id="longitude" readonly style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; font-size: 13px;">
-                    </div>
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: 20px;">
-                    <button type="button" onclick="document.getElementById('incident-sidebar').style.display='none'" style="flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: #374151; background: #f3f4f6; border-radius: 6px;">Cancel</button>
-                    <button type="submit" style="flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: white; background: #2563eb; border-radius: 6px;">Save</button>
-                </div>
-            </form>
+        
+        <!-- Quick Stats -->
+        <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="stat-card rounded-2xl p-6 border border-sky-500/20">
+                <div class="text-3xl font-bold text-sky-400">24/7</div>
+                <div class="text-sm text-slate-400 mt-1">Monitoring</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 border border-sky-500/20">
+                <div class="text-3xl font-bold text-sky-400">&lt;5min</div>
+                <div class="text-sm text-slate-400 mt-1">Response Time</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 border border-sky-500/20">
+                <div class="text-3xl font-bold text-sky-400">6</div>
+                <div class="text-sm text-slate-400 mt-1">States Covered</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 border border-sky-500/20">
+                <div class="text-3xl font-bold text-sky-400">AI</div>
+                <div class="text-sm text-slate-400 mt-1">Powered</div>
+            </div>
         </div>
     </div>
 
-    <!-- Dispatch Sidebar (docked) -->
-    <div id="dispatch-sidebar" style="display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 380px; z-index: 9998; background: white; box-shadow: -4px 0 6px -1px rgba(0,0,0,0.1); overflow-y: auto;">
-        <div style="padding: 20px; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center;">
-            <h2 style="font-size: 18px; font-weight: 600; color: #111827;">Create Dispatch</h2>
-            <button type="button" onclick="document.getElementById('dispatch-sidebar').style.display='none'" style="padding: 4px;">
-                <svg style="width: 20px; height: 20px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
-        </div>
-        <div style="padding: 20px;">
-            <form id="dispatch-form" hx-post="/api/dispatch/dispatches/" hx-target="#dispatches-list" hx-swap="innerHTML">
-                {% csrf_token %}
-                <div style="margin-bottom: 14px;">
-                    <label for="dispatch-incident" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Incident</label>
-                    <select name="incident" id="dispatch-incident" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;"></select>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="dispatch-police" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Police Station</label>
-                    <select name="police_station" id="dispatch-police" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="dispatch-amotekun" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Amotekun Station</label>
-                    <select name="amotekun_station" id="dispatch-amotekun" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <option value="">None</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="dispatch-status" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Status</label>
-                    <select name="status" id="dispatch-status" required style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
-                        <option value="pending">Pending</option>
-                        <option value="dispatched">Dispatched</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="cancelled">Cancelled</option>
-                    </select>
-                </div>
-                <div style="margin-bottom: 14px;">
-                    <label for="dispatch-notes" style="display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px;">Notes</label>
-                    <textarea name="notes" id="dispatch-notes" rows="2" style="width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: 20px;">
-                    <button type="button" onclick="document.getElementById('dispatch-sidebar').style.display='none'" style="flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: #374151; background: #f3f4f6; border-radius: 6px;">Cancel</button>
-                    <button type="submit" style="flex: 1; padding: 10px; font-size: 14px; font-weight: 500; color: white; background: #16a34a; border-radius: 6px;">Create</button>
-                </div>
-            </form>
+    <!-- Location consent banner -->
+    <div x-show="showLocationBanner" x-transition
+         class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg mx-4">
+        <div class="glass rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="text-2xl">📍</div>
+            <div class="flex-1">
+                <p class="font-semibold text-sm">Allow location access?</p>
+                <p class="text-xs text-slate-400 mt-1">We use your location to show nearby incidents, weather and emergency services. It is saved only with your consent.</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <button @click="allowLocation()" class="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold hover:bg-sky-500 transition">Allow</button>
+                <button @click="showLocationBanner=false" class="rounded-xl border border-slate-600 px-4 py-2 text-sm hover:border-slate-400 transition">Deny</button>
+            </div>
         </div>
     </div>
+</section>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-         crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js"></script>
-    <script src="https://unpkg.com/leaflet.heat/dist/leaflet-heat.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<!-- ── FEATURES SECTION ───────────────────────────────── -->
+<section id="features" class="relative z-10 py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Comprehensive Security Solutions</h2>
+            <p class="text-slate-400 max-w-2xl mx-auto">Our platform integrates cutting-edge technology with community-driven reporting to create a safer environment for everyone.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">🚨</div>
+                <h3 class="text-xl font-bold mb-3">Real-time Incident Reporting</h3>
+                <p class="text-slate-400">Report emergencies instantly with location tagging, photo evidence, and automatic dispatch to nearest responders.</p>
+            </div>
+            
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">🗺️</div>
+                <h3 class="text-xl font-bold mb-3">Live Incident Mapping</h3>
+                <p class="text-slate-400">Interactive map showing real-time incidents, patrol locations, and emergency response units across the region.</p>
+            </div>
+            
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">🤖</div>
+                <h3 class="text-xl font-bold mb-3">AI-Powered Analytics</h3>
+                <p class="text-slate-400">Machine learning algorithms predict crime hotspots, optimize patrol routes, and provide actionable intelligence.</p>
+            </div>
+            
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">📹</div>
+                <h3 class="text-xl font-bold mb-3">Surveillance Integration</h3>
+                <p class="text-slate-400">Connect CCTV cameras with AI detection for automated threat identification and rapid response.</p>
+            </div>
+            
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">🚗</div>
+                <h3 class="text-xl font-bold mb-3">Traffic Monitoring</h3>
+                <p class="text-slate-400">Real-time traffic conditions, route optimization, and incident impact analysis for efficient emergency response.</p>
+            </div>
+            
+            <div class="feature-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="text-4xl mb-4">🌤️</div>
+                <h3 class="text-xl font-bold mb-3">Weather Intelligence</h3>
+                <p class="text-slate-400">Weather forecasts integrated with security planning to anticipate and prepare for weather-related incidents.</p>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <script src="{% static 'js/api.js' %}"></script>
-    <script src="{% static 'js/map.js' %}"></script>
-    <script src="{% static 'js/data-loader.js' %}"></script>
-    <script src="{% static 'js/modals.js' %}"></script>
-    <script src="{% static 'js/dropdowns.js' %}"></script>
-    <script src="{% static 'js/ui-components.js' %}"></script>
-    <script src="{% static 'js/main.js' %}"></script>
+<!-- ── SERVICES SECTION ───────────────────────────────── -->
+<section id="services" class="relative z-10 py-20 px-4 bg-slate-900/50">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Our Services</h2>
+            <p class="text-slate-400 max-w-2xl mx-auto">Comprehensive security services designed to protect communities and save lives.</p>
+        </div>
+        
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="service-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl">👮</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Emergency Response</h3>
+                        <p class="text-slate-400">Rapid deployment of trained personnel to emergency situations with real-time coordination and tracking.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="service-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl">🚓</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Patrol Services</h3>
+                        <p class="text-slate-400">Strategic patrol routes optimized by AI to maximize coverage and deter criminal activities.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="service-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl">📡</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Communication Hub</h3>
+                        <p class="text-slate-400">Integrated communication system connecting citizens, responders, and command centers.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="service-card glass rounded-2xl p-8 border border-slate-700/50">
+                <div class="flex items-start gap-4">
+                    <div class="text-3xl">📊</div>
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Data Analytics</h3>
+                        <p class="text-slate-400">Comprehensive analytics dashboard for commanders to make informed decisions based on real-time data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── STATS SECTION ───────────────────────────────────── -->
+<section id="stats" class="relative z-10 py-20 px-4">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-16">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Our Impact</h2>
+            <p class="text-slate-400 max-w-2xl mx-auto">Making communities safer through technology and community partnership.</p>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-bold text-sky-400 mb-2">10K+</div>
+                <div class="text-slate-400">Incidents Resolved</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-bold text-sky-400 mb-2">500+</div>
+                <div class="text-slate-400">Active Personnel</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-bold text-sky-400 mb-2">5M+</div>
+                <div class="text-slate-400">Citizens Protected</div>
+            </div>
+            <div class="text-center">
+                <div class="text-4xl md:text-5xl font-bold text-sky-400 mb-2">98%</div>
+                <div class="text-slate-400">Response Rate</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CALL TO ACTION ─────────────────────────────────── -->
+<section class="relative z-10 py-20 px-4">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="glass rounded-3xl p-12 border border-sky-500/30">
+            <h2 class="text-3xl md:text-4xl font-bold mb-4">Join the Safety Network</h2>
+            <p class="text-slate-400 mb-8 max-w-2xl mx-auto">Create an account to report incidents, receive emergency alerts, and access advanced security features.</p>
+            <div class="flex flex-wrap items-center justify-center gap-4">
+                <a href="{% url 'account_signup' %}" class="rounded-2xl bg-sky-600 px-8 py-4 text-base font-bold hover:bg-sky-500 transition">Create Free Account</a>
+                <button @click="openReport()" class="rounded-2xl border border-slate-600 px-8 py-4 text-base font-semibold hover:border-slate-400 transition">Report Incident</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────── -->
+<footer class="relative z-10 py-12 px-4 border-t border-slate-800">
+    <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <div class="flex items-center gap-2 font-bold text-lg tracking-widest uppercase text-sky-400 mb-4">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                    Amotekun
+                </div>
+                <p class="text-slate-400 text-sm">South West Nigeria Security Network - Protecting communities through technology and collaboration.</p>
+            </div>
+            
+            <div>
+                <h4 class="font-bold mb-4">Quick Links</h4>
+                <ul class="space-y-2 text-slate-400 text-sm">
+                    <li><a href="#" class="hover:text-white transition">About Us</a></li>
+                    <li><a href="#" class="hover:text-white transition">Services</a></li>
+                    <li><a href="#" class="hover:text-white transition">Contact</a></li>
+                    <li><a href="#" class="hover:text-white transition">Privacy Policy</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-bold mb-4">Emergency Numbers</h4>
+                <ul class="space-y-2 text-slate-400 text-sm">
+                    <li>Emergency: 112</li>
+                    <li>Police: 17</li>
+                    <li>Fire: 18</li>
+                    <li>Ambulance: 19</li>
+                </ul>
+            </div>
+            
+            <div>
+                <h4 class="font-bold mb-4">States Covered</h4>
+                <ul class="space-y-2 text-slate-400 text-sm">
+                    <li>Lagos</li>
+                    <li>Ogun</li>
+                    <li>Oyo</li>
+                    <li>Osun</li>
+                    <li>Ondo</li>
+                    <li>Ekiti</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="border-t border-slate-800 pt-8 text-center text-slate-400 text-sm">
+            <p>© {% now "Y" %} Amotekun Intelligence Platform. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- ── FLOATING ACTION BUTTONS ─────────────────────────── -->
+<div class="fixed bottom-8 right-6 z-50 flex flex-col gap-3">
+    <button @click="openReport()" title="Report Incident"
+            class="h-14 w-14 rounded-full bg-red-600 shadow-xl shadow-red-900/50 hover:bg-red-500 transition active:scale-95 flex items-center justify-center text-xl">
+        🚨
+    </button>
+    <button @click="panel='weather'" title="Weather"
+            class="h-12 w-12 rounded-full glass shadow-lg hover:bg-white/10 transition flex items-center justify-center text-lg">
+        🌤
+    </button>
+    <button @click="panel='traffic'" title="Traffic"
+            class="h-12 w-12 rounded-full glass shadow-lg hover:bg-white/10 transition flex items-center justify-center text-lg">
+        🚦
+    </button>
+</div>
+
+<!-- ── SIDE PANEL (Weather / Traffic / Report) ─────────── -->
+<div x-show="panel !== null" x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="translate-x-full opacity-0"
+     x-transition:enter-end="translate-x-0 opacity-100"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="translate-x-0 opacity-100"
+     x-transition:leave-end="translate-x-full opacity-0"
+     class="fixed top-0 right-0 bottom-0 z-[60] w-full max-w-md flex flex-col glass shadow-2xl">
+
+    <!-- Panel Header -->
+    <div class="flex items-center justify-between px-6 py-5 border-b border-white/10">
+        <h2 class="text-lg font-bold">
+            <span x-show="panel==='report'">🚨 Report Incident</span>
+            <span x-show="panel==='weather'">🌤 Weather Conditions</span>
+            <span x-show="panel==='traffic'">🚦 Traffic Status</span>
+        </h2>
+        <button @click="panel=null" class="rounded-lg p-2 hover:bg-white/10 transition">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Panel Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+
+        <!-- REPORT INCIDENT -->
+        <div x-show="panel==='report'">
+            <p class="text-sm text-slate-400 mb-6">Fill in the details below. No account required.</p>
+            <form id="incident-form" hx-post="{% url 'incident-create' %}" hx-target="#form-feedback" hx-swap="innerHTML"
+                  enctype="multipart/form-data" hx-encoding="multipart/form-data"
+                  hx-on::after-request="onLandingFormDone(event)"
+                  class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Incident Title</label>
+                    <input type="text" name="title" required placeholder="e.g. Armed robbery on Lagos road"
+                           class="w-full rounded-xl bg-white/10 border border-white/15 px-4 py-3 text-sm placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition"/>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Type</label>
+                        <select name="report_type" required
+                                class="w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition"
+                                style="background-color:#1e293b;color-scheme:dark">
+                            <option value="" disabled selected>Select type</option>
+                            <option value="crime">&#128272; Crime</option>
+                            <option value="violence">&#9888;&#65039; Violence</option>
+                            <option value="fire">&#128293; Fire</option>
+                            <option value="flood">&#127754; Flood</option>
+                            <option value="accident">&#128664; Accident</option>
+                            <option value="Other">&#128204; Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">State</label>
+                        <select name="state" id="landing-state"
+                                onchange="landingStateChange(this)"
+                                class="w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition"
+                                style="background-color:#1e293b;color-scheme:dark">
+                            <option value="">Select State</option>
+                            {% for state in states %}<option value="{{ state.id }}">{{ state.name }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">LGA</label>
+                        <div id="landing-lga-wrapper">
+                            <select name="lga" id="landing-lga" onchange="landingLgaChange(this)"
+                                    class="w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition"
+                                    style="background-color:#1e293b;color-scheme:dark">
+                                <option value="">Select LGA</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Ward</label>
+                        <div id="landing-ward-wrapper">
+                            <select name="ward"
+                                    class="w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition"
+                                    style="background-color:#1e293b;color-scheme:dark">
+                                <option value="">Select Ward</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Description</label>
+                    <textarea name="description" rows="3" required placeholder="Describe what happened..."
+                              class="w-full rounded-xl bg-white/10 border border-white/15 px-4 py-3 text-sm placeholder-slate-500 focus:outline-none focus:border-sky-500 transition resize-none"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Media Type</label>
+                        <select name="media_type"
+                                class="w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition"
+                                style="background-color:#1e293b;color-scheme:dark">
+                            <option value="">None</option>
+                            <option value="image">&#128247; Image</option>
+                            <option value="video">&#127909; Video</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Attach File</label>
+                        <input type="file" name="file" accept="image/*,video/*,.mp4,.avi,.webp,.mp3"
+                               class="w-full rounded-xl bg-white/10 border border-white/15 px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:border-sky-500 transition file:mr-2 file:rounded-lg file:border-0 file:bg-sky-600/20 file:text-sky-300 file:text-xs file:px-2 file:py-1"/>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Latitude</label>
+                        <input type="number" step="any" name="latitude" id="lat-input" readonly
+                               class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-400 focus:outline-none"/>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 mb-1.5 uppercase tracking-wide">Longitude</label>
+                        <input type="number" step="any" name="longitude" id="lng-input" readonly
+                               class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-slate-400 focus:outline-none"/>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500">&#128205; Allow location access above to auto-fill coordinates.</p>
+                <div id="form-feedback"></div>
+                <button type="submit"
+                        class="w-full rounded-xl bg-red-600 py-3.5 text-sm font-bold hover:bg-red-500 shadow-lg shadow-red-900/40 transition active:scale-95">
+                    Submit Report
+                </button>
+            </form>
+        </div>
+
+        <!-- WEATHER -->
+        <div x-show="panel==='weather'"
+             hx-get="{% url 'weather-widget' %}" hx-trigger="intersect once" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-4">
+                <div class="h-32 rounded-2xl bg-white/10"></div>
+                <div class="h-4 w-2/3 rounded bg-white/10"></div>
+                <div class="h-4 w-1/2 rounded bg-white/10"></div>
+            </div>
+        </div>
+
+        <!-- TRAFFIC -->
+        <div x-show="panel==='traffic'"
+             hx-get="{% url 'traffic-widget' %}" hx-trigger="intersect once" hx-swap="innerHTML">
+            <div class="animate-pulse space-y-4">
+                <div class="h-32 rounded-2xl bg-white/10"></div>
+                <div class="h-4 w-2/3 rounded bg-white/10"></div>
+                <div class="h-4 w-1/2 rounded bg-white/10"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── OVERLAY when panel open ─────────────────────────── -->
+<div x-show="panel !== null" @click="panel=null" x-transition.opacity
+     class="fixed inset-0 z-[55] bg-black/30 backdrop-blur-sm"></div>
+
+<!-- ── SCRIPTS ─────────────────────────────────────────── -->
+<script src="{% static 'js/api.js' %}"></script>
+<script>
+function landingApp() {
+    return {
+        panel: null,
+        showLocationBanner: !localStorage.getItem('locationConsent'),
+        userLat: null,
+        userLng: null,
+        openReport() { this.panel = 'report'; },
+        scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        },
+        allowLocation() {
+            this.showLocationBanner = false;
+            localStorage.setItem('locationConsent', 'granted');
+            if (!navigator.geolocation) return;
+            navigator.geolocation.getCurrentPosition(pos => {
+                this.userLat = pos.coords.latitude;
+                this.userLng = pos.coords.longitude;
+                const latEl = document.getElementById('lat-input');
+                const lngEl = document.getElementById('lng-input');
+                if (latEl) latEl.value = pos.coords.latitude.toFixed(6);
+                if (lngEl) lngEl.value = pos.coords.longitude.toFixed(6);
+            });
+        }
+    }
+}
+
+const _darkSelect = 'w-full rounded-xl border border-white/15 px-4 py-3 text-sm text-white focus:outline-none focus:border-sky-500 transition';
+const _darkStyle  = 'background-color:#1e293b;color-scheme:dark';
+
+function landingStateChange(sel) {
+    document.getElementById('landing-ward-wrapper').innerHTML =
+        `<select name="ward" class="${_darkSelect}" style="${_darkStyle}"><option value="">Select Ward</option></select>`;
+    if (!sel.value) return;
+    fetch('/api/get-lgas/?state=' + sel.value).then(r => r.text()).then(html => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const s = tmp.querySelector('select');
+        if (s) {
+            s.className = _darkSelect; s.style.cssText = _darkStyle;
+            s.setAttribute('onchange', 'landingLgaChange(this)');
+            document.getElementById('landing-lga-wrapper').innerHTML = s.outerHTML;
+        }
+    }).catch(() => {});
+}
+
+function landingLgaChange(sel) {
+    if (!sel.value) return;
+    fetch('/api/get-wards/?lga=' + sel.value).then(r => r.text()).then(html => {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        const s = tmp.querySelector('select');
+        if (s) {
+            s.className = _darkSelect; s.style.cssText = _darkStyle;
+            document.getElementById('landing-ward-wrapper').innerHTML = s.outerHTML;
+        }
+    }).catch(() => {});
+}
+
+function onLandingFormDone(evt) {
+    if (!evt.detail || evt.detail.xhr.status !== 204) return;
+    // Show success message
+    const fb = document.getElementById('form-feedback');
+    if (fb) {
+        fb.innerHTML = '<div style="background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);border-radius:10px;padding:12px 16px;color:#6ee7b7;font-size:13px;font-weight:600;text-align:center">✅ Report submitted successfully! Responders have been notified.</div>';
+    }
+    // Reset form fields
+    const form = document.getElementById('incident-form');
+    if (form) form.reset();
+    // Reset cascaded selects
+    const lgaW = document.getElementById('landing-lga-wrapper');
+    const wardW = document.getElementById('landing-ward-wrapper');
+    if (lgaW) lgaW.innerHTML = `<select name="lga" class="${_darkSelect}" style="${_darkStyle}"><option value="">Select LGA</option></select>`;
+    if (wardW) wardW.innerHTML = `<select name="ward" class="${_darkSelect}" style="${_darkStyle}"><option value="">Select Ward</option></select>`;
+    // Close panel after 2s
+    setTimeout(() => {
+        if (window.Alpine) {
+            const appEl = document.querySelector('[x-data]');
+            if (appEl && appEl._x_dataStack) appEl._x_dataStack[0].panel = null;
+        }
+        if (fb) fb.innerHTML = '';
+    }, 2000);
+}
+</script>
 </body>
 </html>

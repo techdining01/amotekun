@@ -1,0 +1,22 @@
+<div class="flex flex-wrap items-center gap-3">
+    <select name="status"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 transition"
+            hx-get="{{ filter_url }}" hx-target="#camera-grid" hx-trigger="change" hx-include="[name='status'],[name='type']">
+        <option value="">All Status</option>
+        <option value="online">Online</option>
+        <option value="offline">Offline</option>
+        <option value="maintenance">Maintenance</option>
+    </select>
+    <select name="type"
+            class="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 focus:outline-none focus:border-sky-500 transition"
+            hx-get="{{ filter_url }}" hx-target="#camera-grid" hx-trigger="change" hx-include="[name='status'],[name='type']">
+        <option value="">All Types</option>
+        <option value="fixed">Fixed</option>
+        <option value="ptz">PTZ</option>
+        <option value="mobile">Mobile</option>
+    </select>
+    <div class="ml-auto flex items-center gap-2 text-xs text-slate-500">
+        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        {{ online_count|default:0 }} online
+    </div>
+</div>
